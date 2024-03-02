@@ -3,16 +3,48 @@
 @tailwind utilities;
 
 body {
-    background-color: #002447;
-    color: #ffffff;
+    background-color: #f2f1eb;
+    color: #000
 }
 
 h1 {
     font-family: 'Breathing', sans-serif;
     font-size: 24px;
+    color: #f2f1eb
+}
+
+h2 {
+    font-family: 'Black Mango';
+    font-weight: bold;
+    letter-spacing: 2px;
+    font-size: 48px;
+    color: #332919;
+}
+
+h3 {
+    font-family: 'TT Chocolates', sans-serif;
+    font-size: 12px;
+    letter-spacing: 1.2px;
+    color: #332919;
 }
 
 @font-face {
     font-family: 'Breathing';
     src: url('/fonts/Breathing.ttf');
+}
+
+@font-face {
+    font-family: 'Black Mango';
+    src: url('/fonts/BlackMango-Regular.ttf');
+}
+
+@font-face {
+    font-family: 'Black Mango';
+    src: url('/fonts/BlackMango-Bold.ttf');
+    font-weight: bold;
+}
+
+@font-face {
+    font-family: 'TT Chocolates';
+    src: url('/fonts/TT-Chocolates-Regular.otf');
 }

@@ -3,9 +3,9 @@ import Image from "next/image";
 export default function Home() {
     return (
         <main className="flex min-h-screen flex-col items-center justify-between">
-            <div className="w-screen h-fit min-h-[100vh] relative flex flex-col">
-                <header className="top-0 left-0 w-full h-fit">
-                    <div className="w-full h-[120px] py-[30px] px-[20px] flex justify-between">
+            <div className="w-full h-fit min-h-[100vh] min-w-[1024px] relative flex flex-col">
+                <header className="fixed top-0 left-0 w-full h-[100px] bg-kai-blue text-white shadow z-[2024] bg-opacity-80">
+                    <div className="w-full h-[100px] px-[20px] flex justify-between items-center">
                         <h1 className="w-fit ml-[30px]">KAI<br />studios</h1>
                         <nav className="flex justify-end items-center">
                             <ul className="flex gap-4 mr-[30px] font-['Breathing'] text-[12px] items-center">
@@ -15,6 +15,8 @@ export default function Home() {
                             </ul>
                         </nav>
                     </div>
+                </header>
+                <section className="h-[474.5px] bg-kai-blue relative">
                     <svg className="fill-[#f2f1eb] absolute top-0 left-0 z-[1001]" width={470} height={480} viewBox="30 30 470 480">
                         <path d="M263.99507085643864,54.92380365578147C228.71554734031628,107.04128157732593 232.9250359416718,151.44136372971863 193.13534606695418,175.09468063257341C112.95461080303964,222.90244403368249 30.76935715752721,177.29965085233107 5.512425549394126,259.2844526596837C-20.345861573218322,343.2737728486342 45.903470938591084,424.4567673033477 184.61614294516326,475.2713082768535C346.3807763401109,534.7052782912302 511.5530909837749,372.9406448962826 472.7656602998562,252.56931608133087C440.6933661942904,152.84452659683714 496.2185253645513,109.1460258780037 462.8432943109468,54.92380365578147C408.1199424933251,-33.77613472992401 301.7802423495584,-1.002259190798932 263.99507085643864,54.92380365578147Z"></path>
                     </svg>
@@ -27,8 +29,88 @@ export default function Home() {
                         </defs>
                         <image className="object-fill object-[50%_90%]" xlinkHref="images/header-image.webp" x="0" y="-130" height="465" width="390" clipPath="url(#headerClip)"/>
                     </svg>
-                </header>
-                <div className="bg-white w-full h-[100px] mt-[354px]"></div>
+                </section>
+                <section className="w-full h-[60vw] flex flex-col justify-start items-center pt-6">
+                    <h2 className="text-center w-fit h-fit">OUR PRODUCTS</h2>
+                    <h3 className="text-center w-fit h-fit my-2">JEWELLERY • HANDMADE • JOY</h3>
+                    <div className="w-[90%] h-[40vw] grid grid-cols-3 grid-rows-2 gap-5 my-4">
+                        <div className="bg-white relative">
+                            <Image className="absolute w-full h-full" src="https://via.placeholder.com/600x400" width={0} height={0} alt="placeholder" sizes="30vw" draggable={false}/>
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-[60%] h-[30%] opacity-80 flex flex-col justify-center items-center">
+                                <h3 className="text-center w-fit h-fit">开始 (KĀI SHǏ)</h3>
+                                <h3 className="text-center w-fit h-fit">DESCRIPTION</h3>
+                            </div>
+                        </div>
+                        <div className="bg-white col-span-2 relative">
+                            <Image className="w-full h-full absolute" src="https://via.placeholder.com/600x200" width={0} height={0} alt="placeholder" sizes="30vw" draggable={false}/>
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-[60%] h-[30%] opacity-80 flex flex-col justify-center items-center">
+                                <h3 className="text-center w-fit h-fit">开始 (KĀI SHǏ)</h3>
+                                <h3 className="text-center w-fit h-fit">DESCRIPTION</h3>
+                            </div>
+                        </div>
+                        <div className="bg-white relative">
+                            <Image className="absolute w-full h-full" src="https://via.placeholder.com/600x400" width={0} height={0} alt="placeholder" sizes="30vw" draggable={false}/>
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-[60%] h-[30%] opacity-80 flex flex-col justify-center items-center">
+                                <h3 className="text-center w-fit h-fit">开始 (KĀI SHǏ)</h3>
+                                <h3 className="text-center w-fit h-fit">DESCRIPTION</h3>
+                            </div>
+                        </div>
+                        <div className="bg-white relative">
+                            <Image className="absolute w-full h-full" src="https://via.placeholder.com/600x400" width={0} height={0} alt="placeholder" sizes="30vw" draggable={false}/>
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-[60%] h-[30%] opacity-80 flex flex-col justify-center items-center">
+                                <h3 className="text-center w-fit h-fit">开始 (KĀI SHǏ)</h3>
+                                <h3 className="text-center w-fit h-fit">DESCRIPTION</h3>
+                            </div>
+                        </div>
+                        <div className="bg-white relative">
+                            <Image className="absolute w-full h-full" src="https://via.placeholder.com/600x400" width={0} height={0} alt="placeholder" sizes="30vw" draggable={false}/>
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-[60%] h-[30%] opacity-80 flex flex-col justify-center items-center">
+                                <h3 className="text-center w-fit h-fit">开始 (KĀI SHǏ)</h3>
+                                <h3 className="text-center w-fit h-fit">DESCRIPTION</h3>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section className="w-full h-[60vw] flex flex-col justify-start items-center pt-6 bg-[#d9d9d9]">
+                    <h2 className="text-center w-fit h-fit mb-4">ABOUT US</h2>
+                    <div className="w-[90%] h-[40vw] grid grid-cols-3 grid-rows-1 gap-2 my-4">
+                        <div className="relative w-full h-full">
+                            <Image className="h-[40vw] w-full object-cover" src={"/images/story.webp"} width={0} height={0} alt="story.webp" sizes="30vw" draggable={false}/>
+                            <div className="z-10 absolute w-[13vw] h-[16vw] -right-[25%] -bottom-[2%] border shadow flex bg-[#f2f1eb] justify-center -rotate-[20deg]">
+                                <Image
+                                    className="h-full w-full object-cover p-[5%] pb-[30%]"
+                                    src={"/images/kai.webp"}
+                                    width={0}
+                                    height={0}
+                                    sizes={"15vw"}
+                                    alt="kai.webp"
+                                    draggable={false} />
+                            </div>
+                        </div>
+                       <div className="relative w-full h-full">
+                            <Image className="h-[40vw] w-full object-cover" src={"/images/logo.webp"} width={0} height={0} alt="logo.webp" sizes="30vw" draggable={false} />
+                            <div className="z-10 absolute w-[13vw] h-[16vw] -right-[25%] -top-[5%] shadow flex bg-[#f2f1eb] justify-center rotate-[20deg]">
+                                <Image
+                                    className="h-full w-full object-cover p-[5%] pb-[30%]"
+                                    src={"/images/rose.jpeg"}
+                                    width={0}
+                                    height={0}
+                                    sizes={"15vw"}
+                                    alt="rose.jpeg"
+                                    draggable={false} />
+                            </div>
+                       </div>
+                        <Image className="h-[40vw] w-full object-cover" src={"/images/products.webp"} width={0} height={0} alt="products.webp" sizes="30vw" draggable={false}/>
+                    </div>
+                </section>
+                <footer className="w-full h-[60px] bg-kai-blue text-white">
+                    <div className="w-full h-full py-2 px-4 flex justify-between items-center">
+                        <div className="flex flex-col">
+                            <h3 className="ml-[2vw] w-fit text-white">©2024 KAI Studios</h3>
+                            <h3 className="ml-[2vw] w-fit text-white">Designed and built by Alyssa Png and Jarrell Khoo</h3>
+                        </div>
+                    </div>
+                </footer>
             </div>
         </main>
     );
