@@ -2,9 +2,8 @@ import React, { Suspense } from 'react'
 import ProductPage from "./page-client"
 import { getProductKeys, getProducts } from "@/functions/actions"
 
-export const itemsPerPage = 12;
-
 const ProductPageWrapper = async () => {
+    const itemsPerPage = 12;
     // Only get the data for first page of products but send all products to the client
     const productKeys = await getProductKeys();
     const products = await getProducts(productKeys.slice(0, itemsPerPage));

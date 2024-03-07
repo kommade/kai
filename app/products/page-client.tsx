@@ -10,10 +10,10 @@ import {
 } from "@/components/ui/command"
 import { ProductData, ProductGrid} from "@/components/ProductList"
 import { getProducts, searchProducts } from "@/functions/actions"
-import { itemsPerPage } from "./page"
   
 
 const ProductPage = ({ products, totalPages, keys }: { products: ProductData[], totalPages: number, keys: string[] }) => {
+    const itemsPerPage = 12;
     const [productKeys, setProductKeys] = useState<string[]>(keys)
     const [searchValue, setSearchValue] = useState("")
     const [productList, setProductList] = useState<ProductData[]>(products.concat(Array(productKeys.length - itemsPerPage > 0 ? productKeys.length - itemsPerPage : 0).fill(undefined)))
