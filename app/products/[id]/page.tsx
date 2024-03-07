@@ -1,21 +1,21 @@
 import React, { Suspense } from 'react'
 import { ProductData } from '@/components/ProductList';
-import { getProductKeys, getProducts } from "@/functions/actions"
+import { getProductKeyFromId, getProducts } from "@/functions/actions"
 import ProductSpecificPage from './page-client';
 
-const ProductSpecificPageWrapper = async ({ id }: { id: number }) => {
-  const productKeys = await getProductKeys();
-  const products = await getProducts(productKeys);
+const ProductSpecificPageWrapper = async ({ params }: { params: { id: string } }) => {
+    const productKey = await getProductKeyFromId(params.id);
+    const product = await getProducts([productKey]);
 
-  if (!products.success) {
-      return <div>Error fetching products</div>;
-  }
+    if (!product.success) {
+        return <div>Error fetching products</div>;
+    }
 
-  return (
-      <Suspense fallback={<div>Loading...</div>}>
-          <ProductSpecificPage product={products.data![id]} />
-      </Suspense>
-  );
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <ProductSpecificPage product={product.data as ProductData} />
+        </Suspense>
+    );
 };
 
 export default ProductSpecificPageWrapper;

@@ -9,7 +9,7 @@ export type ProductData = {
     images: string[];
     description: string;
     price: string;
-    id: string[];
+    id: string;
 };
 
 const ProductItem = ({ images, name, description, price, id}: ProductData) => {
@@ -17,7 +17,7 @@ const ProductItem = ({ images, name, description, price, id}: ProductData) => {
     return (
         <div className="bg-kai-white relative">
             <div className="absolute w-full h-[75%] bg-kai-white overflow-hidden" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
-                <Link href="/products/[id]" as={`/products/${id}}`}>
+                <Link href={`/products/${id}`}>
                     <Image className={`absolute w-full h-full object-cover transition-all duration-300 ${hover ? "brightness-75": ""}`} src={images[0]} width={0} height={0} alt="placeholder" sizes="30vw" draggable={false}/>
                     <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-kai-white w-[60%] h-[30%] rounded-sm flex flex-col justify-center items-center transition-opacity duration-300 ${hover ? "opacity-80" : "opacity-0"}`}>
                         <h3 className="text-center w-fit h-fit">BUY NOW</h3>

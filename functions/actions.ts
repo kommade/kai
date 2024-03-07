@@ -4,7 +4,7 @@ import { ProductData } from "@/components/ProductList";
 import { Redis } from '@upstash/redis'
 import { unstable_cache as cache } from "next/cache";
 
-const redis = new Redis.fromEnv()
+const redis = Redis.fromEnv()
 const revalidate = 60;
 
 export const getProductKeys = cache(async () => {
@@ -25,6 +25,9 @@ export const getProducts = cache(async (keys: string[]) => {
         }
         res.images = (res.images as string).split(',');
         products.push(res as ProductData);
+    }
+    if (products.length === 1) {
+        return { success: true, data: products[0] };
     }
     return { success: true, data: products };
 }, undefined, { revalidate: revalidate })
@@ -75,4 +78,9 @@ export const searchProducts = cache(async (input: string) => {
     }
     const result = await redis.sinter(tokens[0], ...tokens.slice(1));
     return result;
+}, undefined, { revalidate: revalidate })
+
+export const getProductKeyFromId = cache(async (id: string) => {
+    const key = await redis.get(id);
+    return key as string;
 }, undefined, { revalidate: revalidate })
