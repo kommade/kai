@@ -7,6 +7,7 @@ const HeaderComponent = () => {
             <h1 className="w-fit ml-[30px] text-kai-blue">KAI<br />studios</h1>
             <nav className="flex justify-end items-center">
                 <ul className="flex gap-4 mr-[30px] font-['Breathing'] text-[12px] items-center">
+                    <li><a href="./">Home</a></li>
                     <li className="group">
                         <a href="/products">Our Products</a>
                         <ul className="absolute hidden bg-kai-white text-kai-blue shadow z-[2024] mt-2 p-2 space-y-3 group-hover:block">
