@@ -20,8 +20,39 @@ const ProductPage = ({ products, totalPages, keys }: { products: ProductData[], 
     const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
+        // responding to stateful updates
+        const handleDataChange = async (page: number = 1) => {
+            // if any of the products on the page chosen are undefined in the list, fetch them
+            if (productList.slice((page - 1) * itemsPerPage, page * itemsPerPage).some((product) => product === undefined)){
+                const products = await getProducts(productKeys.slice((page - 1) * itemsPerPage, page * itemsPerPage));
+                if (!products.success) {
+                    console.error('Error fetching products:', products.message);
+                    return;
+                    // show a pop up and error screen
+                }
+                // if the data fetched is less than the itemsPerPage, we are on the last page and we need to fill the rest of the data with null
+                // so that we know there is no more data to fetch
+                if (products.data!.length < itemsPerPage) {
+                    setProductList(
+                        productList
+                            .slice(0, (page - 1) * itemsPerPage)
+                            .concat(products.data!)
+                            .concat(Array(itemsPerPage - products.data!.length).fill(null))
+                            );
+                } else {
+                    // otherwise we just fill in the missing data into the list
+                    setProductList(
+                        productList
+                        .slice(0, (page - 1) * itemsPerPage)
+                        .concat(products.data!)
+                            .concat(productList.slice(page * itemsPerPage, productList.length))
+                    );
+                }
+            }
+            setCurrentPage(page);
+        }
         handleDataChange();
-    }, [productList, productKeys]);
+    }, [productList, productKeys, currentPage]);
 
     // searchbar
     const handleValueChange = (value: string) => {
@@ -41,37 +72,7 @@ const ProductPage = ({ products, totalPages, keys }: { products: ProductData[], 
         }
     }
 
-    // responding to stateful updates
-    const handleDataChange = async (page: number = 1) => {
-        // if any of the products on the page chosen are undefined in the list, fetch them
-        if (productList.slice((page - 1) * itemsPerPage, page * itemsPerPage).some((product) => product === undefined)){
-            const products = await getProducts(productKeys.slice((page - 1) * itemsPerPage, page * itemsPerPage));
-            if (!products.success) {
-                console.error('Error fetching products:', products.message);
-                return;
-                // show a pop up and error screen
-            }
-            // if the data fetched is less than the itemsPerPage, we are on the last page and we need to fill the rest of the data with null
-            // so that we know there is no more data to fetch
-            if (products.data!.length < itemsPerPage) {
-                setProductList(
-                    productList
-                        .slice(0, (page - 1) * itemsPerPage)
-                        .concat(products.data!)
-                        .concat(Array(itemsPerPage - products.data!.length).fill(null))
-                        );
-            } else {
-                // otherwise we just fill in the missing data into the list
-                setProductList(
-                    productList
-                    .slice(0, (page - 1) * itemsPerPage)
-                    .concat(products.data!)
-                        .concat(productList.slice(page * itemsPerPage, productList.length))
-                );
-            }
-        }
-        setCurrentPage(page);
-    }
+    
     return (
         <main className="flex min-h-screen flex-col items-center justify-between">
             <div className="w-full h-fit min-h-[100vh] min-w-[1024px] relative flex flex-col">
@@ -93,7 +94,7 @@ const ProductPage = ({ products, totalPages, keys }: { products: ProductData[], 
                                 return (
                                     <button
                                     key={pageNumber}
-                                    onClick={() => handleDataChange(pageNumber)}
+                                    onClick={() => setCurrentPage(pageNumber)}
                                     className={`mx-2 hover:text-kai-blue ${currentPage === pageNumber ? 'text-kai-blue' : 'text-kai-grey'}`}
                                     >
                                     {pageNumber}
