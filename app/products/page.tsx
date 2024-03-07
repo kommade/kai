@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react'
 import ProductPage from "./page-client"
 import { getProductKeys, getProducts } from "@/functions/actions"
+import { ProductData } from "@/components/ProductList";
 
 const ProductPageWrapper = async () => {
     const itemsPerPage = 12;
@@ -16,7 +17,7 @@ const ProductPageWrapper = async () => {
     };
     return (
         <Suspense fallback={<div>Loading...</div>}>
-            <ProductPage products={products.data!} totalPages={totalPages} keys={productKeys}/>
+            <ProductPage products={products.data as ProductData[]} totalPages={totalPages} keys={productKeys}/>
         </Suspense>
     )
 }
