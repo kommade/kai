@@ -4,11 +4,7 @@ import { ProductData } from "@/components/ProductList";
 import { Redis } from '@upstash/redis'
 import { unstable_cache as cache } from "next/cache";
 
-const redis = new Redis({
-    url: "https://stable-dragon-32203.upstash.io",
-    token: "AX3LASQgMjI4YjM2MTAtNzBkMy00N2VhLWE5NGEtNGUwMzgwNDEyZmJkMWRkMmRjODMyMTBlNGQzMTg0NWQ0ZThjYTc2MzA5NzY=",
-});
-
+const redis = new Redis.fromEnv()
 const revalidate = 60;
 
 export const getProductKeys = cache(async () => {
