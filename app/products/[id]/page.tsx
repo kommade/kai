@@ -13,7 +13,7 @@ const ProductSpecificPageWrapper = async ({ params }: { params: { id: string } }
 
     return (
         <Suspense fallback={<div>Loading...</div>}>
-            <ProductSpecificPage product={product.data as ProductData} />
+            <ProductSpecificPage product={product.data![0]} />
         </Suspense>
     );
 };

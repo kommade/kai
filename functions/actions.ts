@@ -26,9 +26,6 @@ export const getProducts = cache(async (keys: string[]) => {
         res.images = (res.images as string).split(',');
         products.push(res as ProductData);
     }
-    if (products.length === 1) {
-        return { success: true, data: products[0] };
-    }
     return { success: true, data: products };
 }, undefined, { revalidate: revalidate })
 
