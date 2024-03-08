@@ -1,4 +1,4 @@
-import { getTokens } from "@/functions/actions";
+import { getTokens } from "@/functions/database";
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 
