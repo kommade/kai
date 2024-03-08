@@ -1,6 +1,6 @@
 "use server";
 
-import { ProductData } from "@/components/ProductList";
+import { ProductData } from "@/components/ProductGrid";
 import { Redis } from '@upstash/redis'
 import { unstable_cache as cache } from "next/cache";
 
@@ -75,4 +75,21 @@ export const searchProducts = cache(async (input: string) => {
     }
     const result = await redis.sinter(tokens[0], ...tokens.slice(1));
     return result;
+}, undefined, { revalidate: revalidate })
+
+export const getCollections = cache(async () => {
+    const collections = await redis.lrange('collections', 0, -1);
+    return collections;
+}, undefined, { revalidate: revalidate })
+
+export const getHomeProductImages = cache(async () => {
+    const earringCover = (await redis.sinter("earrings"))[0];
+    //const setCover = (await redis.sinter("sets"))[0];
+    //const necklaceCover = (await redis.sinter("necklace"))[0];
+    const recentCollection = (await redis.lrange("collections", -1, -1))[0];
+    const recentCollectionItem = (await redis.sinter(recentCollection))[0];
+    //const collectionCover = ???
+    // const products = await getProducts([earringCover, setCover, necklaceCover, recentCollectionItem, collectionCover]);
+    const products = await getProducts([earringCover, recentCollectionItem]);
+    return products.data!.map((product) => product.images[0]);
 }, undefined, { revalidate: revalidate })

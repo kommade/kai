@@ -76,14 +76,15 @@
   }
 
 body {
-    background-color: #f2f1eb;
-    color: #000
+    background-color: #fbfbf1;
+    color: #000;
+    font-family: 'TT Chocolates', sans-serif;
 }
 
 h1 {
     font-family: 'Breathing', sans-serif;
     font-size: 20px;
-    color: #f2f1eb
+    color: #fbfbf1
 }
 
 h2 {

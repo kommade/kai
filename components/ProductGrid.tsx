@@ -3,6 +3,7 @@ import React from "react";
 
 export type ProductData = {
     collection: string;
+    type: string;
     name: string;
     images: string[];
     description: string;
