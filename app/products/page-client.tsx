@@ -97,7 +97,7 @@ const ProductPage = ({ products, totalPages, keys, collections }: { products: Pr
             }
         }
         handleFilterChange();
-    }, [earringSelected, necklaceSelected, setsSelected, selectedCollection, router]);
+    }, [earringSelected, necklaceSelected, setsSelected, selectedCollection, router, searchParams]);
 
     useEffect(() => {
         const handleSearchParams = () => {
@@ -111,7 +111,7 @@ const ProductPage = ({ products, totalPages, keys, collections }: { products: Pr
             }
         }
         handleSearchParams();
-    }, [searchParams, productKeys]);
+    }, [searchParams, productKeys, originalProductList]);
 
     // searchbar
     const handleValueChange = (value: string) => {
