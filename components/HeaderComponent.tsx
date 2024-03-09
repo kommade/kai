@@ -12,21 +12,25 @@ const HeaderComponent = () => {
                 <NavigationMenu className="font-['Breathing'] bg-kai-white">
                     <NavigationMenuList className="flex gap-2">
                         <NavigationMenuItem>
-                            <NavigationMenuTrigger className="bg-kai-white active:bg-kai-grey hover:bg-kai-grey data-[state=open]:bg-accent/0 focus:bg-accent-0">Our Products</NavigationMenuTrigger>
+                            <NavigationMenuTrigger className="bg-kai-white active:bg-kai-grey hover:bg-kai-grey data-[state=open]:bg-accent/0 focus:bg-accent-0">
+                                <Link href={"/products"} legacyBehavior passHref>
+                                    <NavigationMenuLink className="pl-2">Our Products</NavigationMenuLink>
+                                </Link>
+                            </NavigationMenuTrigger>
                             <NavigationMenuContent className="bg-kai-white">
                                 <ul className="w-[136px] bg-kai-white text-kai-blue shadow mt-2 p-2 group-hover:block rounded-md">
                                     <li>
-                                        <Link className="flex h-fit py-2 hover:bg-kai-grey rounded-md" href={"/products?type=earrings"} passHref>
+                                        <Link className="flex h-fit py-2 hover:bg-kai-grey rounded-md" href={"/products?type=earrings"} legacyBehavior passHref>
                                             <NavigationMenuLink className="pl-2">Earrings</NavigationMenuLink>
                                         </Link>
                                     </li>
                                     <li>
-                                        <Link className="flex h-fit py-2 hover:bg-kai-grey rounded-md" href={"/products?type=necklaces"} passHref>
+                                        <Link className="flex h-fit py-2 hover:bg-kai-grey rounded-md" href={"/products?type=necklaces"} legacyBehavior passHref>
                                             <NavigationMenuLink className="pl-2">Necklaces</NavigationMenuLink>
                                         </Link>
                                     </li>
                                     <li>
-                                        <Link className="flex h-fit py-2 hover:bg-kai-grey rounded-md" href={"/products?type=sets"} passHref>
+                                        <Link className="flex h-fit py-2 hover:bg-kai-grey rounded-md" href={"/products?type=sets"} legacyBehavior passHref>
                                             <NavigationMenuLink className="pl-2">Sets</NavigationMenuLink>
                                         </Link>
                                     </li>

@@ -1,11 +1,11 @@
 "use server";
 
-import { ProductData } from "@/components/ProductGrid";
+import { ProductData } from "@/lib/types";
 import { Redis } from '@upstash/redis'
 import { unstable_cache as cache } from "next/cache";
 
 const redis = Redis.fromEnv();
-const revalidate = 60;
+const revalidate = 3600;
 
 export const getProductKeys = cache(async () => {
     const keys = await redis.lrange('products', 0, -1);
@@ -93,3 +93,20 @@ export const getHomeProductImages = cache(async () => {
     const products = await getProducts([earringCover, recentCollectionItem]);
     return products.data!.map((product) => product.images[0]);
 }, undefined, { revalidate: revalidate })
+
+export const getCart = cache(async (id: string) => {
+    const cart = await redis.lrange(`cart:${id}`, 0, -1);
+    return cart;
+}, undefined, { revalidate: revalidate })
+
+export const addProductToCart = async (id: string, product: string) => {
+    await redis.lpush(`cart:${id}`, product);
+}
+
+export const removeProductFromCart = async (id: string, product: string) => {
+    await redis.lrem(`cart:${id}`, 0, product);
+}
+
+export const deleteCart = async (id: string) => {
+    await redis.del(`cart:${id}`);
+}

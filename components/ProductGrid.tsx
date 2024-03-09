@@ -1,14 +1,6 @@
+import { ProductData } from "@/lib/types";
 import Image from "next/image";
 import React from "react";
-
-export type ProductData = {
-    collection: string;
-    type: string;
-    name: string;
-    images: string[];
-    description: string;
-    price: string;
-};
 
 const ProductItem = ({ images, name, description, price }: ProductData) => {
     const [hover, setHover] = React.useState(false);
