@@ -53,7 +53,7 @@ const ProductSpecificPage = ({ product }: { product: ProductData }) => {
                                     key={index}
                                     src={image}
                                     alt={name}
-                                    className="w-16 h-16 cursor-pointer border border-gray-300 object-cover"
+                                    className="w-16 h-16 cursor-pointer border border-kai-grey object-cover"
                                     onClick={() => handleImageClick(image)}
                                 />
                                 ))}
@@ -84,26 +84,23 @@ const ProductSpecificPage = ({ product }: { product: ProductData }) => {
 
                                 {activeTab === 'productCare' && (
                                     <>
-                                        <h3>Our items are crafted from polymer clay, hence it's important to handle them with care. Avoid dropping or crushing your jewelry :( Each piece is meticulously created by hand, ensuring its uniqueness. Cherish and proudly showcase them to flaunt their looks!</h3>
+                                        <h3>Our items are crafted from polymer clay, hence it&apos;s important to handle them with care. Avoid dropping or crushing your jewelry :( Each piece is meticulously created by hand, ensuring its uniqueness. Cherish and proudly showcase them to flaunt their looks!</h3>
                                     </>
                                 )}
                             </div>
                             <h3 className="text-bold mb-2">Studs</h3>
                             <div className='flex gap-2 mb-2'>
-                                <button className={`border rounded-md p-1 ${selectedStud === 'SSS' ? 'border-kai-blue' : 'border-gray-300'}`}
-                                    style={{ fontSize: '0.7rem' }}
+                                <button className={`border rounded-md p-1 hover:bg-kai-white transition-colors ${selectedStud === 'SSS' ? 'border-kai-blue' : 'border-kai-grey'}`}
                                     onClick={() => handleStudChange('SSS')}
                                 >
                                     <h3>Stainless Steel Silver</h3>
                                 </button>
-                                <button className={`border rounded-md p-1 ${selectedStud === 'SSG' ? 'border-kai-blue' : 'border-gray-300'}`}
-                                    style={{ fontSize: '0.7rem' }}
+                                <button className={`border rounded-md p-1 hover:bg-kai-white transition-colors ${selectedStud === 'SSG' ? 'border-kai-blue' : 'border-kai-grey'}`}
                                     onClick={() => handleStudChange('SSG')}
                                 >
                                     <h3>Stainless Steel Gold</h3>
                                 </button>
-                                <button className={`border rounded-md p-1 ${selectedStud === '925S' ? 'border-kai-blue' : 'border-gray-300'}`}
-                                    style={{ fontSize: '0.7rem' }}
+                                <button className={`border rounded-md p-1 hover:bg-kai-white transition-colors ${selectedStud === '925S' ? 'border-kai-blue' : 'border-kai-grey'}`}
                                     onClick={() => handleStudChange('925S')}
                                 >
                                     <h3>925 Sliver</h3>
@@ -111,14 +108,14 @@ const ProductSpecificPage = ({ product }: { product: ProductData }) => {
                             </div>
                             <h3 className="text-bold mb-2">Quantity</h3>
                             <div className="flex items-center mb-2">
-                                <button className="w-8 h-8 border border-kai-blue rounded-md" onClick={() => handleQuantityChange(quantity - 1)}>-</button>
+                                <button className="w-8 h-8 border border-kai-blue rounded-md hover:bg-kai-white transition-colors" disabled={quantity===1} onClick={() => handleQuantityChange(quantity - 1)}>-</button>
                                 <h3 className="mx-2">{quantity}</h3>
-                                <button className="w-8 h-8 border border-kai-blue rounded-md" onClick={() => handleQuantityChange(quantity + 1)}>+</button>
-                                <button className={`w-24 h-8 ${quantity <= 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-kai-blue'} rounded-md ml-2`}
+                                <button className="w-8 h-8 border border-kai-blue rounded-md hover:bg-kai-white transition-colors " onClick={() => handleQuantityChange(quantity + 1)}>+</button>
+                                <button className={`w-24 h-8 ${quantity <= 0 ? 'bg-kai-grey cursor-not-allowed' : 'bg-kai-blue'} rounded-md ml-2`}
                                     onClick={handleAddToCart} disabled={quantity <= 0}>
                                     <h3 className="text-white" >Add to cart</h3>
                                 </button>
-                                <button className={`border w-24 h-8 ${quantity <= 0 ? 'bg-gray-300 cursor-not-allowed' : 'border-kai-blue'} rounded-md ml-2`}
+                                <button className={`border w-24 h-8 ${quantity <= 0 ? 'bg-kai-grey cursor-not-allowed' : 'border-kai-blue'} rounded-md ml-2`}
                                     onClick={handleAddToCart} disabled={quantity <= 0}>
                                     <h3 className="text-kai-blue" >Buy now</h3>
                                 </button>
