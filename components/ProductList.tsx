@@ -7,12 +7,12 @@ export type ProductData = {
     collection: string;
     name: string;
     images: string[];
-    description: string;
+    desc: string;
     price: string;
     id: string;
 };
 
-const ProductItem = ({ images, name, description, price, id}: ProductData) => {
+const ProductItem = ({ images, name, desc, price, id, collection}: ProductData) => {
     const [hover, setHover] = React.useState(false);
     return (
         <div className="bg-kai-white relative">
@@ -25,7 +25,7 @@ const ProductItem = ({ images, name, description, price, id}: ProductData) => {
                 </Link>
             </div>
             <div className="absolute bottom-4 left-0 text-center w-full">
-                <h3 className="text-black">{name}</h3>
+                <h3 className="text-black">{collection} {name}</h3>
                 <h3 className="text-black">{price}</h3>
             </div>
         </div>

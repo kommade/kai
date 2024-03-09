@@ -58,6 +58,7 @@ const ProductPage = ({ products, totalPages, keys }: { products: ProductData[], 
     const handleValueChange = (value: string) => {
         setSearchValue(value)
     }
+    
     const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") {
             if (searchValue === "") {
