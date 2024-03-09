@@ -6,8 +6,9 @@ import HeaderComponent from "@/components/HeaderComponent"
 import { Button } from "@/components/ui/button";
 import { changeProductNumberInCart, deleteProductFromCart, getCart } from "@/functions/database";
 import { getSessionId, getSessionIdAndCreateIfMissing } from "@/functions/sessions";
-import { Cart } from "@/lib/types"
+import { Cart, ProductInCart, SelectedProductOptions } from "@/lib/types"
 import { ColumnDef } from "@tanstack/react-table";
+import Image from "next/image";
 import React, { useEffect } from 'react'
 
 const CartPage = ({ data }: { data?: Cart}) => {
@@ -23,46 +24,68 @@ const CartPage = ({ data }: { data?: Cart}) => {
         fetchCart();
     }, [data])
 
-    const updateProductCount = async (id: string, count?: number) => {
+    const updateProductCount = async (product: ProductInCart, count?: number) => {
         const session = await getSessionId();
         if (count === undefined) {
-            await deleteProductFromCart(session!, id);
-            setCart((prev) => prev.filter((product) => product.id !== id));
+            await deleteProductFromCart(session!, product);
+            setCart((prev) => prev.filter((inCart) => inCart.stringified !== product.stringified));
             return;
         }
-        const res = await changeProductNumberInCart(session!, id, count);
+        const res = await changeProductNumberInCart(session!, product, count);
         if (res && !res.success) {
             return;
         }
         setCart((prev) => {
-            const newCart = prev.map((product) => {
-                if (product.id === id) {
+            const newCart = prev.map((inCart) => {
+                if (inCart.stringified === product.stringified) {
                     return {
-                        ...product,
-                        count: product.count + count,
-                        total: parseFloat(product.price) * (product.count + count)
+                        ...inCart,
+                        count: inCart.count + count,
+                        total: parseFloat(inCart.product.price) * (inCart.count + count)
                     }
                 }
-                return product;
+                return inCart;
             })
             return newCart;
         })
     }
 
-    const columns: ColumnDef<Cart[number]>[] = [
+    const columns: ColumnDef<ProductInCart>[] = [
         {
-            accessorKey: "fullName",
+            accessorKey: "product",
             header: "Item",
+            cell: ({ row }) => {
+                const product = row.getValue("product") as ProductInCart["product"];
+                return (
+                    <div className="flex items-center gap-3">
+                        <Image src={product.images[0]} alt={product.name} className="w-[50px] h-[50px] object-cover rounded-md" width={50} height={50} sizes="50px"/>
+                        <div>
+                            <h3>{product.fullName}</h3>
+                            <p>{product.type.charAt(0).toUpperCase() + product.type.slice(1)}</p>
+                        </div>
+                    </div>
+                )
+            }
+        },
+        {
+            accessorKey: "product",
+            header: "Options",
+            cell: ({ row }) => {
+                const product = row.getValue("product") as ProductInCart["product"];
+                const options = product.options as SelectedProductOptions;
+                return Object.values(options).join(", ");
+            }
         },
         {
             accessorKey: "count",
             header: "Quantity",
         },
         {
-            accessorKey: "price",
+            accessorKey: "product",
             header: "Price",
             cell: ({ row }) => {
-                const price = row.getValue("price") as number;
+                const product = row.getValue("product") as ProductInCart["product"];
+                const price = parseFloat(product.price);
                 const formatted = new Intl.NumberFormat("en-US", {
                     style: "currency",
                     currency: "SGD",
@@ -86,12 +109,12 @@ const CartPage = ({ data }: { data?: Cart}) => {
             id: "actions",
             cell: ({ row }) => {
                 const count = parseInt(row.getValue("count"));
-                const id = row.original.id;
+                const product = row.original;
                 return (
                     <div className="flex items-center gap-3">
-                        <Button variant={"outline"} disabled={count===1} onClick={() => updateProductCount(id, -1)}>-</Button>
+                        <Button variant={"outline"} disabled={count===1} onClick={() => updateProductCount(product, -1)}>-</Button>
                         {count}
-                        <Button variant={"outline"} onClick={() => updateProductCount(id, 1)}>+</Button>
+                        <Button variant={"outline"} onClick={() => updateProductCount(product, 1)}>+</Button>
                     </div>
                 )
             }
@@ -99,9 +122,9 @@ const CartPage = ({ data }: { data?: Cart}) => {
         {
             id: 'remove',
             cell: ({ row }) => {
-                const id = row.original.id;
+                const product = row.original;
                 return (
-                    <Button variant={"outline"} onClick={() => updateProductCount(id)}>Remove</Button>
+                    <Button variant={"outline"} onClick={() => updateProductCount(product)}>Remove</Button>
                 )
             }
         }

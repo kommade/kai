@@ -1,12 +1,40 @@
 export type ProductData = {
-    id: string
+    id: string // This is the id in the URL
+    key: string; // This is the key in the database
     collection: string;
     type: string;
     name: string;
     images: string[];
-    description: string;
+    desc: string;
     price: string;
+    options: string | ProductOptions;
 };
+
+export type ProductOptions = {
+    [option: string]: string[];
+};
+
+export type ProductInCart = {
+    product: {
+        key: string;
+        collection: string;
+        name: string;
+        fullName: string;
+        type: string;
+        price: string;
+        images: string[];
+        options: SelectedProductOptions;
+    }
+    stringified: string;
+    count: number;
+    total: number;
+}
+
+export type SelectedProductOptions = {
+    [option: string]: string;
+};
+
+export type Cart = ProductInCart[];
 
 export type User = {
     id: string;
@@ -14,5 +42,3 @@ export type User = {
     hash: string;
     last: string;
 };
-
-export type Cart = (ProductData & { count: number, total: number, fullName: string })[];

@@ -1,9 +1,20 @@
-import React from 'react'
+import React, { Suspense } from 'react'
+import { getProductKeyFromId, getProducts } from "@/functions/database"
+import ProductSpecificPage from './page-client';
 
-const ProductSpecificPage = () => {
-  return (
-    <div>ProductSpecificPage</div>
-  )
-}
+const ProductSpecificPageWrapper = async ({ params }: { params: { id: string } }) => {
+    const productKey = await getProductKeyFromId(params.id);
+    const product = await getProducts([productKey]);
 
-export default ProductSpecificPage
+    if (!product.success) {
+        return <div>Error fetching products</div>;
+    }
+
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <ProductSpecificPage product={product.data![0]} />
+        </Suspense>
+    );
+};
+
+export default ProductSpecificPageWrapper;

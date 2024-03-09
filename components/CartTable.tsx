@@ -30,10 +30,10 @@ export function CartTable<TData, TValue>({
             <Table>
             <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
+                <TableRow key={`${headerGroup.id}-${Math.random().toString(36).substring(7)}`}>
                     {headerGroup.headers.map((header) => {
                     return (
-                        <TableHead key={header.id}>
+                        <TableHead key={`${header.id}-${Math.random().toString(36).substring(7)}`}>
                         {header.isPlaceholder
                             ? null
                             : flexRender(
@@ -50,11 +50,11 @@ export function CartTable<TData, TValue>({
                 {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
                     <TableRow
-                    key={row.id}
+                    key={`${row.id}-${Math.random().toString(36).substring(7)}`}
                     data-state={row.getIsSelected() && "selected"}
                     >
                     {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
+                        <TableCell key={`${cell.id}-${Math.random().toString(36).substring(7)}`}>
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </TableCell>
                     ))}
