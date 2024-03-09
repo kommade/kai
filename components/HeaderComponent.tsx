@@ -14,19 +14,19 @@ const HeaderComponent = () => {
                         <NavigationMenuItem>
                             <NavigationMenuTrigger className="bg-kai-white active:bg-kai-grey hover:bg-kai-grey data-[state=open]:bg-accent/0 focus:bg-accent-0">Our Products</NavigationMenuTrigger>
                             <NavigationMenuContent className="bg-kai-white">
-                                <ul className="w-[136px] bg-kai-white text-kai-blue shadow mt-2 p-2 group-hover:block rounded-sm">
+                                <ul className="w-[136px] bg-kai-white text-kai-blue shadow mt-2 p-2 group-hover:block rounded-md">
                                     <li>
-                                        <Link className="flex h-fit py-2 hover:bg-kai-grey rounded-sm" href={"/products?type=earrings"} passHref>
+                                        <Link className="flex h-fit py-2 hover:bg-kai-grey rounded-md" href={"/products?type=earrings"} passHref>
                                             <NavigationMenuLink className="pl-2">Earrings</NavigationMenuLink>
                                         </Link>
                                     </li>
                                     <li>
-                                        <Link className="flex h-fit py-2 hover:bg-kai-grey rounded-sm" href={"/products?type=necklaces"} passHref>
+                                        <Link className="flex h-fit py-2 hover:bg-kai-grey rounded-md" href={"/products?type=necklaces"} passHref>
                                             <NavigationMenuLink className="pl-2">Necklaces</NavigationMenuLink>
                                         </Link>
                                     </li>
                                     <li>
-                                        <Link className="flex h-fit py-2 hover:bg-kai-grey rounded-sm" href={"/products?type=sets"} passHref>
+                                        <Link className="flex h-fit py-2 hover:bg-kai-grey rounded-md" href={"/products?type=sets"} passHref>
                                             <NavigationMenuLink className="pl-2">Sets</NavigationMenuLink>
                                         </Link>
                                     </li>

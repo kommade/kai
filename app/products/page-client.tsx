@@ -101,14 +101,16 @@ const ProductPage = ({ products, totalPages, keys, collections }: { products: Pr
 
     useEffect(() => {
         const handleSearchParams = () => {
-            const type = searchParams.get("type")?.split(" ");
             const collection = searchParams.get("collection");
-            if (type) {
-                setProductList(originalProductList.filter((product) => type.includes(product.type)))
-            }
+            const type = searchParams.get("type")?.split(" ");
+            let productList = originalProductList;
             if (collection) {
-                setProductList(originalProductList.filter((product) => product.collection === collection));
+                productList = productList.filter((product) => product.collection === collection);
             }
+            if (type) {
+                productList = productList.filter((product) => type.includes(product.type))
+            }
+            setProductList(productList);
         }
         handleSearchParams();
     }, [searchParams, productKeys, originalProductList]);
@@ -146,7 +148,7 @@ const ProductPage = ({ products, totalPages, keys, collections }: { products: Pr
                             </div>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button className="h-[46px] focus-visible:ring-0 focus-visible:ring-offset-0" variant="outline">Filters</Button>
+                                    <Button className="h-[46px]" variant="outline">Filters</Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent className="w-[300px] z-[1000] border border-kai-grey bg-kai-white -translate-x-[80px] translate-y-[10px] rounded-sm shadow">
                                     <DropdownMenuGroup>
@@ -159,7 +161,6 @@ const ProductPage = ({ products, totalPages, keys, collections }: { products: Pr
                                                 setEarringSelected(!earringSelected);
                                             }}
                                         >
-                                            
                                             <Checkbox checked={earringSelected}/>
                                             Earring
                                         </DropdownMenuItem>
@@ -170,7 +171,6 @@ const ProductPage = ({ products, totalPages, keys, collections }: { products: Pr
                                                 setNecklaceSelected(!necklaceSelected);
                                             }}
                                         >
-                                            
                                             <Checkbox checked={necklaceSelected}/>
                                             Necklace
                                         </DropdownMenuItem>
