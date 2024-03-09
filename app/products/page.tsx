@@ -1,7 +1,6 @@
 import React, { Suspense } from 'react'
 import ProductPage from "./page-client"
-import { getProductKeys, getProducts } from "@/functions/actions"
-import { ProductData } from "@/components/ProductList";
+import { getCollections, getProductKeys, getProducts } from "@/functions/database"
 
 const ProductPageWrapper = async () => {
     const itemsPerPage = 12;
@@ -10,6 +9,8 @@ const ProductPageWrapper = async () => {
     const products = await getProducts(productKeys.slice(0, itemsPerPage));
     const totalPages = Math.ceil(productKeys.length / itemsPerPage);
 
+    const collections = await getCollections();
+
     if (!products.success) {
         return (
             <div>Error fetching products</div>
@@ -17,7 +18,7 @@ const ProductPageWrapper = async () => {
     };
     return (
         <Suspense fallback={<div>Loading...</div>}>
-            <ProductPage products={products.data as ProductData[]} totalPages={totalPages} keys={productKeys}/>
+            <ProductPage products={products.data!} totalPages={totalPages} keys={productKeys} collections={collections} />
         </Suspense>
     )
 }

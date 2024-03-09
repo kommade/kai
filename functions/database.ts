@@ -1,11 +1,11 @@
 "use server";
 
-import { ProductData } from "@/components/ProductList";
+import { Cart, ProductData } from "@/lib/types";
 import { Redis } from '@upstash/redis'
 import { unstable_cache as cache } from "next/cache";
 
-const redis = Redis.fromEnv()
-const revalidate = 60;
+const redis = Redis.fromEnv();
+const revalidate = 3600;
 
 export const getProductKeys = cache(async () => {
     const keys = await redis.lrange('products', 0, -1);
@@ -24,6 +24,7 @@ export const getProducts = cache(async (keys: string[]) => {
             return { success: false, message: "Product(s) not found" };
         }
         res.images = (res.images as string).split(',');
+        res.id = key;
         products.push(res as ProductData);
     }
     return { success: true, data: products };
@@ -77,7 +78,50 @@ export const searchProducts = cache(async (input: string) => {
     return result;
 }, undefined, { revalidate: revalidate })
 
-export const getProductKeyFromId = cache(async (id: string) => {
-    const key = await redis.get(id);
-    return key as string;
+export const getCollections = cache(async () => {
+    const collections = await redis.lrange('collections', 0, -1);
+    return collections;
 }, undefined, { revalidate: revalidate })
+
+export const getHomeProductImages = cache(async () => {
+    const earringCover = (await redis.sinter("earrings"))[0];
+    //const setCover = (await redis.sinter("sets"))[0];
+    //const necklaceCover = (await redis.sinter("necklace"))[0];
+    const recentCollection = (await redis.lrange("collections", -1, -1))[0];
+    const recentCollectionItem = (await redis.sinter(recentCollection))[0];
+    //const collectionCover = ???
+    // const products = await getProducts([earringCover, setCover, necklaceCover, recentCollectionItem, collectionCover]);
+    const products = await getProducts([earringCover, recentCollectionItem]);
+    return products.data!.map((product) => product.images[0]);
+}, undefined, { revalidate: revalidate })
+
+export const getCart = cache(async (id: string)  => {
+    const cart = (await redis.hgetall(`cart:${id}`)) as Record<string, string>;
+    if (cart === null) {
+        return [] as Cart;
+    }
+    const productsInCart = await getProducts(Object.keys(cart));
+    return productsInCart.data!.map((product) => {
+        return {
+            ...product,
+            count: parseInt(cart[product.id]),
+            total: parseFloat(product.price) * parseInt(cart[product.id]),
+            fullName: `${product.collection} - ${product.name}`
+        };
+    });
+}, undefined, { revalidate: revalidate })
+
+export const changeProductNumberInCart = async (id: string, product: string, count: number) => {
+    if (await redis.hget(`cart:${id}`, product) === 1 && count === -1) {
+        return { success: false, message: "Cannot reduce count below 1, use deleteProductFromCart" };
+    }
+    await redis.hincrby(`cart:${id}`, product, count);
+}
+
+export const deleteProductFromCart = async (id: string, product: string) => {
+    await redis.hdel(`cart:${id}`, product);
+}
+
+export const deleteCart = async (id: string) => {
+    await redis.del(`cart:${id}`);
+}
