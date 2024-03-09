@@ -1,4 +1,5 @@
 export type ProductData = {
+    id: string
     collection: string;
     type: string;
     name: string;
@@ -13,3 +14,5 @@ export type User = {
     hash: string;
     last: string;
 };
+
+export type Cart = (ProductData & { count: number, total: number, fullName: string })[];

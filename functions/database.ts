@@ -1,6 +1,6 @@
 "use server";
 
-import { ProductData } from "@/lib/types";
+import { Cart, ProductData } from "@/lib/types";
 import { Redis } from '@upstash/redis'
 import { unstable_cache as cache } from "next/cache";
 
@@ -24,6 +24,7 @@ export const getProducts = cache(async (keys: string[]) => {
             return { success: false, message: "Product(s) not found" };
         }
         res.images = (res.images as string).split(',');
+        res.id = key;
         products.push(res as ProductData);
     }
     return { success: true, data: products };
@@ -94,17 +95,31 @@ export const getHomeProductImages = cache(async () => {
     return products.data!.map((product) => product.images[0]);
 }, undefined, { revalidate: revalidate })
 
-export const getCart = cache(async (id: string) => {
-    const cart = await redis.lrange(`cart:${id}`, 0, -1);
-    return cart;
+export const getCart = cache(async (id: string)  => {
+    const cart = (await redis.hgetall(`cart:${id}`)) as Record<string, string>;
+    if (cart === null) {
+        return [] as Cart;
+    }
+    const productsInCart = await getProducts(Object.keys(cart));
+    return productsInCart.data!.map((product) => {
+        return {
+            ...product,
+            count: parseInt(cart[product.id]),
+            total: parseFloat(product.price) * parseInt(cart[product.id]),
+            fullName: `${product.collection} - ${product.name}`
+        };
+    });
 }, undefined, { revalidate: revalidate })
 
-export const addProductToCart = async (id: string, product: string) => {
-    await redis.lpush(`cart:${id}`, product);
+export const changeProductNumberInCart = async (id: string, product: string, count: number) => {
+    if (await redis.hget(`cart:${id}`, product) === 1 && count === -1) {
+        return { success: false, message: "Cannot reduce count below 1, use deleteProductFromCart" };
+    }
+    await redis.hincrby(`cart:${id}`, product, count);
 }
 
-export const removeProductFromCart = async (id: string, product: string) => {
-    await redis.lrem(`cart:${id}`, 0, product);
+export const deleteProductFromCart = async (id: string, product: string) => {
+    await redis.hdel(`cart:${id}`, product);
 }
 
 export const deleteCart = async (id: string) => {
