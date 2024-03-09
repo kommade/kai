@@ -1,5 +1,3 @@
-import { changeProductNumberInCart } from "@/functions/database";
-import { getSessionIdAndCreateIfMissing } from "@/functions/sessions";
 import { ProductData } from "@/lib/types";
 import Image from "next/image";
 import Link from "next/link";
@@ -13,10 +11,6 @@ const ProductItem = ({product}: {product: ProductData}) => {
                 className="absolute w-full h-[75%] bg-kai-white overflow-hidden"
                 onMouseEnter={() => setHover(true)}
                 onMouseLeave={() => setHover(false)}
-                onClick={async () => {
-                    const sessionId = await getSessionIdAndCreateIfMissing();
-                    await changeProductNumberInCart(sessionId, product.key, 1);
-                }}
             >
                 <Link href={`/products/${product.id}`}>
                     <Image className={`absolute w-full h-full object-cover transition-all duration-300 ${hover ? "brightness-75": ""}`} src={product.images[0]} width={0} height={0} alt="placeholder" sizes="30vw" draggable={false}/>

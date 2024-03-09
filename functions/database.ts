@@ -1,6 +1,6 @@
 "use server";
 
-import { Cart, ProductData } from "@/lib/types";
+import { Cart, ProductData, ProductInCart, ProductOptions, SelectedProductOptions } from "@/lib/types";
 import { Redis } from '@upstash/redis'
 import { unstable_cache as cache } from "next/cache";
 
@@ -105,26 +105,24 @@ export const getCart = cache(async (cartId: string)  => {
     if (cart === null) {
         return [] as Cart;
     }
-    const productsInCart = await getProducts(Object.keys(cart));
-    return productsInCart.data!.map((product) => {
-        return {
-            ...product,
-            count: parseInt(cart[product.id]),
-            total: parseFloat(product.price) * parseInt(cart[product.id]),
-            fullName: `${product.collection} - ${product.name}`
-        };
+    return Object.entries(cart).map(([product, count]) => {
+        const productData = JSON.parse(product) as ProductInCart["product"];
+        const countNum = parseInt(count);
+        const total = countNum * parseInt(productData.price);
+        return { product: productData, stringified: product, count: countNum, total: total } as ProductInCart;
     });
 }, undefined, { revalidate: revalidate })
 
-export const changeProductNumberInCart = async (key: string, product: string, count: number) => {
-    if (await redis.hget(`cart:${key}`, product) === 1 && count === -1) {
+export const changeProductNumberInCart = async (cartId: string, productInCart: ProductInCart, amount: number) => {
+    if (await redis.hget(`cart:${cartId}`, productInCart.stringified) === 1 && amount === -1) {
         return { success: false, message: "Cannot reduce count below 1, use deleteProductFromCart" };
     }
-    await redis.hincrby(`cart:${key}`, product, count);
+    await redis.hincrby(`cart:${cartId}`, productInCart.stringified, amount);
 }
 
-export const deleteProductFromCart = async (cartId: string, product: string) => {
-    await redis.hdel(`cart:${cartId}`, product);
+
+export const deleteProductFromCart = async (cartId: string, productInCart: ProductInCart) => {
+    await redis.hdel(`cart:${cartId}`, productInCart.stringified);
 }
 
 export const deleteCart = async (cartId: string) => {

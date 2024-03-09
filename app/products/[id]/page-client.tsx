@@ -1,25 +1,42 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import HeaderComponent from '@/components/HeaderComponent';
 import FooterComponent from '@/components/FooterComponent';;
 import { useState } from 'react';
-import { ProductData } from "@/lib/types";
+import { ProductData, ProductInCart, ProductOptions, SelectedProductOptions } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import { changeProductNumberInCart } from "@/functions/database";
+import { getSessionIdAndCreateIfMissing } from "@/functions/sessions";
 
 const ProductSpecificPage = ({ product }: { product: ProductData }) => {
-    const { name, desc, images, collection } = product;
+    const { name, desc, images, collection, price, options } = product;
     const [mainImage, setMainImage] = useState(images[0]);
     const [quantity, setQuantity] = useState(1);
-    const [selectedStud, setSelectedStud] = useState('SSS');
-    const [price, setPrice] = useState(product.price);
+    const [selectedOptions, setSelectedOptions] = useState<SelectedProductOptions>(Object.fromEntries(Object.entries(options).map(([option, values]) => [option, values[0]])));
     const [activeTab, setActiveTab] = useState('description');
+    const [transition, setTransition] = useState(false);
+    const [sessionId, setSessionId] = useState<string>("");
+
+    useEffect(() => {
+        const fetchSessionId = async () => {
+            const sessionId = await getSessionIdAndCreateIfMissing();
+            setSessionId(sessionId);
+        };
+        fetchSessionId();
+    }, []);
 
     const handleTabChange = (tab: string) => {
         setActiveTab(tab);
     };
 
-    const handleImageClick = (image : string) => {
-      setMainImage(image);
+    const handleImageClick = (image: string) => {
+        setTransition(true);
+        setTimeout(() => {
+            setMainImage(image);
+            setTransition(false);
+        }, 300);
     };
 
     const handleQuantityChange = (value: number) => {
@@ -28,13 +45,24 @@ const ProductSpecificPage = ({ product }: { product: ProductData }) => {
         }
     };
 
-    const handleStudChange = (value : string) => {
-        setSelectedStud(value)
-        console.log(`${value} Studs Chosen`);
-    };
-
     const handleAddToCart = () => {
-        console.log(`Added ${quantity} items to the cart.`);
+        const nestedProduct = {
+            key: product.key,
+            collection,
+            name,
+            fullName: `${collection} - ${name}`,
+            type: product.type,
+            price,
+            images,
+            options: selectedOptions
+        };
+        const productInCart: ProductInCart = {
+            product: nestedProduct,
+            stringified: JSON.stringify(nestedProduct),
+            count: quantity,
+            total: parseInt(price) * quantity
+        };
+        changeProductNumberInCart(sessionId, productInCart, quantity);
     };
 
     return (
@@ -44,17 +72,22 @@ const ProductSpecificPage = ({ product }: { product: ProductData }) => {
                 <section className="mt-[80px] w-full h-fit flex flex-col justify-start items-center py-6">
                     <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-top">
                         <div className="mb-6 md:mr-6">
-                            <img src={mainImage} alt={name} className="object-cover mb-2" style={{ width: '400px', height: '400px' }}/>
+                            <Image src={mainImage} alt={name} className={`object-cover mb-2 w-[400px] h-[400px] transition-opacity ${ transition ? "opacity-50": "opacity-100"}`} width={400} height={400} sizes="400px" priority/>
                             <div className="flex space-x-2">
-                                {images.map((image, index) => (
-                                <img
-                                    key={index}
-                                    src={image}
-                                    alt={name}
-                                    className="w-16 h-16 cursor-pointer border border-kai-grey object-cover"
-                                    onClick={() => handleImageClick(image)}
-                                />
-                                ))}
+                                {
+                                    images.map((image, index) => (
+                                        <Image
+                                            key={index}
+                                            src={image}
+                                            alt={name}
+                                            className="w-16 h-16 cursor-pointer border border-kai-grey object-cover hover:brightness-90 transition-all"
+                                            width={64}
+                                            height={64}
+                                            sizes="64px"
+                                            onClick={() => handleImageClick(image)}
+                                        />
+                                    ))
+                                }
                             </div>
                         </div>
                         <div className="max-w-md">
@@ -62,17 +95,18 @@ const ProductSpecificPage = ({ product }: { product: ProductData }) => {
                             <h3 className="text-lg mb-2">{price}</h3>
                             <div className="w-auto h-auto mb-5 relative">
                                 <div className="mb-2">
-                                    <button
-                                        className={`mr-2`}
+                                    <Button variant={"secondary"}
+                                        className={`mr-2 bg-kai-white`}
                                         onClick={() => handleTabChange('description')}
                                     >
                                         <h3 className={`${activeTab === 'description' ? 'text-kai-blue' : 'text-gray-400'}`}>Description</h3>
-                                    </button>
-                                    <button
+                                    </Button>
+                                    <Button variant={"secondary"}
+                                        className="bg-kai-white"
                                         onClick={() => handleTabChange('productCare')}
                                     >
                                         <h3 className={`${activeTab === 'productCare' ? 'text-kai-blue' : 'text-gray-400'}`}>Product Care</h3>
-                                    </button>
+                                    </Button>
                                 </div>
                                 {activeTab === 'description' && (
                                     <>
@@ -86,37 +120,40 @@ const ProductSpecificPage = ({ product }: { product: ProductData }) => {
                                     </>
                                 )}
                             </div>
-                            <h3 className="text-bold mb-2">Studs</h3>
-                            <div className='flex gap-2 mb-2'>
-                                <button className={`border rounded-md p-1 hover:bg-kai-white transition-colors ${selectedStud === 'SSS' ? 'border-kai-blue' : 'border-kai-grey'}`}
-                                    onClick={() => handleStudChange('SSS')}
-                                >
-                                    <h3>Stainless Steel Silver</h3>
-                                </button>
-                                <button className={`border rounded-md p-1 hover:bg-kai-white transition-colors ${selectedStud === 'SSG' ? 'border-kai-blue' : 'border-kai-grey'}`}
-                                    onClick={() => handleStudChange('SSG')}
-                                >
-                                    <h3>Stainless Steel Gold</h3>
-                                </button>
-                                <button className={`border rounded-md p-1 hover:bg-kai-white transition-colors ${selectedStud === '925S' ? 'border-kai-blue' : 'border-kai-grey'}`}
-                                    onClick={() => handleStudChange('925S')}
-                                >
-                                    <h3>925 Sliver</h3>
-                                </button>
-                            </div>
+                            {
+                                Object.entries(options as ProductOptions).map(([option, values]) => (
+                                    <React.Fragment key={option}>
+                                        <h3 className="text-bold mb-2">{option}</h3>
+                                        <div className='flex gap-2 mb-2'>
+                                            {
+                                                values.map((value) => (
+                                                    <Button
+                                                        key={value}
+                                                        variant={"outline"}
+                                                        className={`${selectedOptions[option] === value ? '' : 'border-kai-grey'}`}
+                                                        onClick={() => setSelectedOptions({ ...selectedOptions, [option]: value })}
+                                                    >
+                                                        <h3>{value}</h3>
+                                                    </Button>
+                                                ))
+                                            }
+                                        </div>
+                                    </React.Fragment>
+                                ))
+                            }
                             <h3 className="text-bold mb-2">Quantity</h3>
-                            <div className="flex items-center mb-2">
-                                <button className="w-8 h-8 border border-kai-blue rounded-md hover:bg-kai-white transition-colors" disabled={quantity===1} onClick={() => handleQuantityChange(quantity - 1)}>-</button>
-                                <h3 className="mx-2">{quantity}</h3>
-                                <button className="w-8 h-8 border border-kai-blue rounded-md hover:bg-kai-white transition-colors " onClick={() => handleQuantityChange(quantity + 1)}>+</button>
-                                <button className={`w-24 h-8 ${quantity <= 0 ? 'bg-kai-grey cursor-not-allowed' : 'bg-kai-blue'} rounded-md ml-2`}
-                                    onClick={handleAddToCart} disabled={quantity <= 0}>
+                            <div className="flex items-center mb-2 gap-4">
+                                <Button variant={"outline"} className="w-8 h-8 rounded-full text-lg" disabled={quantity===1} onClick={() => handleQuantityChange(quantity - 1)}>-</Button>
+                                <h3 className="text-lg">{quantity}</h3>
+                                <Button variant={"outline"} className="w-8 h-8 rounded-full text-lg" onClick={() => handleQuantityChange(quantity + 1)}>+</Button>
+                                <Button variant={"default"} className={`w-24 h-8 ${quantity <= 0 ? 'bg-kai-grey cursor-not-allowed' : 'bg-kai-blue'} rounded-md`}
+                                    onClick={handleAddToCart}>
                                     <h3 className="text-white" >Add to cart</h3>
-                                </button>
-                                <button className={`border w-24 h-8 ${quantity <= 0 ? 'bg-kai-grey cursor-not-allowed' : 'border-kai-blue'} rounded-md ml-2`}
-                                    onClick={handleAddToCart} disabled={quantity <= 0}>
+                                </Button>
+                                <Button variant={"outline"} className={`w-24 h-8 ${quantity <= 0 ? 'bg-kai-grey cursor-not-allowed' : 'border-kai-blue'} rounded-md`}
+                                    onClick={handleAddToCart}>
                                     <h3 className="text-kai-blue" >Buy now</h3>
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>
