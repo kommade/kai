@@ -8,7 +8,8 @@ import {
     Command,
     CommandInput
 } from "@/components/ui/command"
-import { ProductData, ProductGrid} from "@/components/ProductGrid"
+import { ProductGrid} from "@/components/ProductGrid"
+import { ProductData } from "@/lib/types"
 import { getProducts, searchProducts } from "@/functions/database"
 import { Pagination, PaginationContent, PaginationItem, PaginationLink } from "@/components/ui/pagination"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuGroup, DropdownMenuCheckboxItem, DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu"
