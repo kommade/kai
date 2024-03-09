@@ -1,10 +1,11 @@
 export type ProductData = {
-    id: string
+    id: string // This is the id in the URL
+    key: string; // This is the key in the database
     collection: string;
     type: string;
     name: string;
     images: string[];
-    description: string;
+    desc: string;
     price: string;
 };
 

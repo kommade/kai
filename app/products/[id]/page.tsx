@@ -1,6 +1,5 @@
 import React, { Suspense } from 'react'
-import { ProductData } from '@/components/ProductList';
-import { getProductKeyFromId, getProducts } from "@/functions/actions"
+import { getProductKeyFromId, getProducts } from "@/functions/database"
 import ProductSpecificPage from './page-client';
 
 const ProductSpecificPageWrapper = async ({ params }: { params: { id: string } }) => {

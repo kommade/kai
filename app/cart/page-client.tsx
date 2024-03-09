@@ -23,20 +23,20 @@ const CartPage = ({ data }: { data?: Cart}) => {
         fetchCart();
     }, [data])
 
-    const updateProductCount = async (id: string, count?: number) => {
+    const updateProductCount = async (key: string, count?: number) => {
         const session = await getSessionId();
         if (count === undefined) {
-            await deleteProductFromCart(session!, id);
-            setCart((prev) => prev.filter((product) => product.id !== id));
+            await deleteProductFromCart(session!, key);
+            setCart((prev) => prev.filter((product) => product.id !== key));
             return;
         }
-        const res = await changeProductNumberInCart(session!, id, count);
+        const res = await changeProductNumberInCart(session!, key, count);
         if (res && !res.success) {
             return;
         }
         setCart((prev) => {
             const newCart = prev.map((product) => {
-                if (product.id === id) {
+                if (product.id === key) {
                     return {
                         ...product,
                         count: product.count + count,
@@ -86,12 +86,12 @@ const CartPage = ({ data }: { data?: Cart}) => {
             id: "actions",
             cell: ({ row }) => {
                 const count = parseInt(row.getValue("count"));
-                const id = row.original.id;
+                const key = row.original.key;
                 return (
                     <div className="flex items-center gap-3">
-                        <Button variant={"outline"} disabled={count===1} onClick={() => updateProductCount(id, -1)}>-</Button>
+                        <Button variant={"outline"} disabled={count===1} onClick={() => updateProductCount(key, -1)}>-</Button>
                         {count}
-                        <Button variant={"outline"} onClick={() => updateProductCount(id, 1)}>+</Button>
+                        <Button variant={"outline"} onClick={() => updateProductCount(key, 1)}>+</Button>
                     </div>
                 )
             }
@@ -99,9 +99,9 @@ const CartPage = ({ data }: { data?: Cart}) => {
         {
             id: 'remove',
             cell: ({ row }) => {
-                const id = row.original.id;
+                const key = row.original.key;
                 return (
-                    <Button variant={"outline"} onClick={() => updateProductCount(id)}>Remove</Button>
+                    <Button variant={"outline"} onClick={() => updateProductCount(key)}>Remove</Button>
                 )
             }
         }

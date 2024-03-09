@@ -2,11 +2,9 @@
 
 import React from 'react';
 import HeaderComponent from '@/components/HeaderComponent';
-import FooterComponent from '@/components/FooterComponent';
-import { ProductData } from '@/components/ProductList';
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { getProductKeyFromId, getProducts } from '@/functions/actions';
+import FooterComponent from '@/components/FooterComponent';;
+import { useState } from 'react';
+import { ProductData } from "@/lib/types";
 
 const ProductSpecificPage = ({ product }: { product: ProductData }) => {
     const { name, desc, images, collection } = product;
