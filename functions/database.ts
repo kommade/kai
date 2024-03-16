@@ -32,7 +32,7 @@ export const getProducts = cache(async (keys: string[]) => {
 
 export const getTokens = cache(async () => {
     const tokens = await redis.scan(0, {match: "tags:*"});
-    return tokens[1];
+    return tokens[1].map((token) => token.split(":")[1]);
 }, undefined, { revalidate: revalidate })
 
 async function tokeniseSearchInput(input: string) {
@@ -85,16 +85,16 @@ export const getProductKeyFromId = cache(async (id: string) => {
 }, undefined, { revalidate: revalidate })
 
 export const getCollections = cache(async () => {
-    const collections = await redis.lrange('collections', 0, -1);
-    return collections;
+    const collections = await redis.scan(0, {match: "collection:*"});
+    return collections[1];
 }, undefined, { revalidate: revalidate })
 
 export const getHomeProductImages = cache(async () => {
     const earringCover = (await redis.sinter("earrings"))[0];
     //const setCover = (await redis.sinter("sets"))[0];
     //const necklaceCover = (await redis.sinter("necklace"))[0];
-    const recentCollection = (await redis.lrange("collections", -1, -1))[0];
-    const recentCollectionItem = (await redis.sinter(recentCollection))[0];
+    const recentCollection = await redis.get("recent-collection");
+    const recentCollectionItem = (await redis.sinter(recentCollection as string))[0];
     //const collectionCover = ???
     // const products = await getProducts([earringCover, setCover, necklaceCover, recentCollectionItem, collectionCover]);
     const products = await getProducts([earringCover, recentCollectionItem]);
