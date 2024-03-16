@@ -16,7 +16,7 @@ export const getProducts = cache(async (keys: string[]) => {
     console.log("called!")
     let products: Kai.ProductData[] = [];
     for (let key of keys) {
-        if (await redis.exists(key) === 0) {
+        if (!key || await redis.exists(key) === 0) {
             return { success: false, message: "Product(s) not found" };
         }
         const res: (Kai.ProductData & { images: string | string[] }) | null = await redis.hgetall(key);
