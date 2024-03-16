@@ -9,7 +9,7 @@ import {
     CommandInput
 } from "@/components/ui/command"
 import { ProductGrid} from "@/components/ProductGrid"
-import { ProductData } from "@/lib/types"
+import Kai from "@/lib/types"
 import { getProducts, searchProducts } from "@/functions/database"
 import { Pagination, PaginationContent, PaginationItem, PaginationLink } from "@/components/ui/pagination"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuGroup, DropdownMenuCheckboxItem, DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu"
@@ -19,12 +19,12 @@ import { useRouter, useSearchParams } from "next/navigation"
   
 type Checked = DropdownMenuCheckboxItemProps["checked"]
 
-const ProductPage = ({ products, totalPages, keys, collections }: { products: ProductData[], totalPages: number, keys: string[], collections: string[] }) => {
+const ProductPage = ({ products, totalPages, keys, collections }: { products: Kai.ProductData[], totalPages: number, keys: string[], collections: string[] }) => {
     const itemsPerPage = 12;
     const [productKeys, setProductKeys] = useState<string[]>(keys)
     const [searchValue, setSearchValue] = useState("")
-    const [productList, setProductList] = useState<ProductData[]>(products.concat(Array(productKeys.length - itemsPerPage > 0 ? productKeys.length - itemsPerPage : 0).fill(undefined)))
-    const [originalProductList, setOriginalProductList] = useState<ProductData[]>(products)
+    const [productList, setProductList] = useState<Kai.ProductData[]>(products.concat(Array(productKeys.length - itemsPerPage > 0 ? productKeys.length - itemsPerPage : 0).fill(undefined)))
+    const [originalProductList, setOriginalProductList] = useState<Kai.ProductData[]>(products)
     const [currentPage, setCurrentPage] = useState(1);
     const searchParams = useSearchParams();
     const [earringSelected, setEarringSelected] = React.useState<Checked>(searchParams.get("type")?.split(" ").includes("earrings") || false)
@@ -135,7 +135,7 @@ const ProductPage = ({ products, totalPages, keys, collections }: { products: Pr
     }
 
     return (
-        <main className="flex min-h-screen flex-col items-center justify-between">
+        <main className="flex flex-col items-center justify-between min-h-screen">
             <div className="w-full h-fit min-h-[100vh] min-w-[1024px] relative flex flex-col">
                 <HeaderComponent/>
                 <section className="mt-[80px] w-full h-fit flex flex-col justify-start items-center py-6">
@@ -143,7 +143,7 @@ const ProductPage = ({ products, totalPages, keys, collections }: { products: Pr
                         <h2 className="text-center w-fit text-[24px]">PRODUCTS</h2>
                         <div className="flex w-[250px]">
                             <div className="w-[200px] mr-4">
-                                <Command className="rounded-lg border">
+                                <Command className="border rounded-lg">
                                     <CommandInput placeholder="Search..." onValueChange={handleValueChange} onKeyDown={handleKeyDown} />
                                 </Command>
                             </div>
@@ -156,7 +156,7 @@ const ProductPage = ({ products, totalPages, keys, collections }: { products: Pr
                                         <DropdownMenuLabel className="p-2">By Type</DropdownMenuLabel>
                                         <DropdownMenuSeparator className="h-[1px] bg-kai-grey"/>
                                         <DropdownMenuItem
-                                            className="flex p-2 hover:ring-0 gap-2 justify-start items-center hover:bg-kai-grey"
+                                            className="flex items-center justify-start gap-2 p-2 hover:ring-0 hover:bg-kai-grey"
                                             onClick={(e) => { 
                                                 e.preventDefault();
                                                 setEarringSelected(!earringSelected);
@@ -166,7 +166,7 @@ const ProductPage = ({ products, totalPages, keys, collections }: { products: Pr
                                             Earring
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
-                                            className="flex p-2 hover:ring-0 gap-2 justify-start items-center hover:bg-kai-grey"
+                                            className="flex items-center justify-start gap-2 p-2 hover:ring-0 hover:bg-kai-grey"
                                             onClick={(e) => { 
                                                 e.preventDefault();
                                                 setNecklaceSelected(!necklaceSelected);
@@ -176,7 +176,7 @@ const ProductPage = ({ products, totalPages, keys, collections }: { products: Pr
                                             Necklace
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
-                                            className="flex p-2 hover:ring-0 gap-2 justify-start items-center hover:bg-kai-grey"
+                                            className="flex items-center justify-start gap-2 p-2 hover:ring-0 hover:bg-kai-grey"
                                             onClick={(e) => { 
                                                 e.preventDefault();
                                                 setSetsSelected(!setsSelected);
@@ -191,7 +191,7 @@ const ProductPage = ({ products, totalPages, keys, collections }: { products: Pr
                                     <DropdownMenuGroup>
                                         <DropdownMenuLabel className="p-2">By Collection</DropdownMenuLabel>
                                             <DropdownMenuItem
-                                                className="flex p-2 hover:ring-0 gap-2 justify-start items-center hover:bg-kai-grey"
+                                                className="flex items-center justify-start gap-2 p-2 hover:ring-0 hover:bg-kai-grey"
                                                 onClick={() => {
                                                     setSelectedCollection("");
                                                 }}
@@ -202,7 +202,7 @@ const ProductPage = ({ products, totalPages, keys, collections }: { products: Pr
                                             collections.map((collection) => (
                                                 <DropdownMenuItem
                                                     key={collection}
-                                                    className="flex p-2 hover:ring-0 gap-2 justify-start items-center hover:bg-kai-grey"
+                                                    className="flex items-center justify-start gap-2 p-2 hover:ring-0 hover:bg-kai-grey"
                                                     onClick={() => {
                                                         setSelectedCollection(collection);
                                                     }}

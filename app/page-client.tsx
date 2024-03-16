@@ -7,7 +7,7 @@ import Link from "next/link";
 
 const HomePage = ({ covers }: { covers: string[] }) => {
     return (
-        <main className="flex min-h-screen flex-col items-center justify-between">
+        <main className="flex flex-col items-center justify-between min-h-screen">
             <div className="w-full h-fit min-h-[100vh] min-w-[1024px] relative flex flex-col">
                 <HeaderComponent/>
                 <section className="mt-[80px] h-[474.5px] bg-kai-blue relative">
@@ -26,7 +26,7 @@ const HomePage = ({ covers }: { covers: string[] }) => {
                     <div className="absolute top-1/2 left-[85%] -translate-x-1/2 -translate-y-1/2 text-center">
                         <h3 className="text-white w-[200px]">SPREADING JOY THROUGH ART</h3>
                         <Link href="/products">
-                            <div className="bg-kai-white text-kai-blue rounded px-4 py-2 mt-4">
+                            <div className="px-4 py-2 mt-4 rounded bg-kai-white text-kai-blue">
                                 <h3>SHOP NOW</h3>
                             </div>
                         </Link>
@@ -34,42 +34,42 @@ const HomePage = ({ covers }: { covers: string[] }) => {
                 </section>
                 <section id="products" className="w-full h-[60vw] flex flex-col justify-start items-center pt-6">
                     <h2 className="text-center w-fit h-fit">OUR PRODUCTS</h2>
-                    <h3 className="text-center w-fit h-fit my-2">JEWELLERY • HANDMADE • CONFIDENCE</h3>
+                    <h3 className="my-2 text-center w-fit h-fit">JEWELLERY • HANDMADE • CONFIDENCE</h3>
                     <div className="w-[90%] h-[40vw] grid grid-cols-3 grid-rows-2 gap-5 my-4">
-                        <div className="bg-kai-white relative">
+                        <div className="relative bg-kai-white">
                             <Link href={"/products?type=earrings"}>
-                                <Image className="absolute w-full h-full object-cover" src={covers[0]} width={0} height={0} alt="placeholder" sizes="30vw" draggable={false}/>
+                                <Image className="absolute object-cover w-full h-full" src={covers[0]} width={0} height={0} alt="placeholder" sizes="30vw" draggable={false}/>
                                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-kai-white w-[60%] h-[30%] opacity-80 flex flex-col justify-center items-center">
                                     <h3 className="text-center w-fit h-fit">EARRINGS</h3>
                                 </div>
                             </Link>
                         </div>
-                        <div className="bg-kai-white col-span-2 relative">
+                        <div className="relative col-span-2 bg-kai-white">
                             <Link href={"/products?type=sets"}>
-                                <Image className="w-full h-full absolute object-cover" src="https://via.placeholder.com/600x200" width={0} height={0} alt="placeholder" sizes="30vw" draggable={false}/>
+                                <Image className="absolute object-cover w-full h-full" src="https://via.placeholder.com/600x200" width={0} height={0} alt="placeholder" sizes="30vw" draggable={false}/>
                                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-kai-white w-[60%] h-[30%] opacity-80 flex flex-col justify-center items-center">
                                     <h3 className="text-center w-fit h-fit">EARRING AND NECKLACE SETS</h3>
                                 </div>
                             </Link>
                         </div>
-                        <div className="bg-kai-white relative">
+                        <div className="relative bg-kai-white">
                             <Link href={"/products?type=necklaces"}>
-                                <Image className="absolute w-full h-full object-cover" src="https://via.placeholder.com/600x400" width={0} height={0} alt="placeholder" sizes="30vw" draggable={false}/>
+                                <Image className="absolute object-cover w-full h-full" src="https://via.placeholder.com/600x400" width={0} height={0} alt="placeholder" sizes="30vw" draggable={false}/>
                                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-kai-white w-[60%] h-[30%] opacity-80 flex flex-col justify-center items-center">
                                     <h3 className="text-center w-fit h-fit">NECKLACES</h3>
                                 </div>
                             </Link>
                         </div>
-                        <div className="bg-kai-white relative">
+                        <div className="relative bg-kai-white">
                             <Link href={"/products?collection=recent"}>
-                                <Image className="absolute w-full h-full object-cover" src={covers[1]} width={0} height={0} alt="placeholder" sizes="30vw" draggable={false}/>
+                                <Image className="absolute object-cover w-full h-full" src={covers[1]} width={0} height={0} alt="placeholder" sizes="30vw" draggable={false}/>
                                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-kai-white w-[60%] h-[30%] opacity-80 flex flex-col justify-center items-center">
                                     <h3 className="text-center w-fit h-fit">RECENT ADDITION</h3>
                                 </div>
                             </Link>
                         </div>
-                        <div className="bg-kai-white relative">
-                            <Image className="absolute w-full h-full object-cover" src="https://via.placeholder.com/600x400" width={0} height={0} alt="placeholder" sizes="30vw" draggable={false}/>
+                        <div className="relative bg-kai-white">
+                            <Image className="absolute object-cover w-full h-full" src="https://via.placeholder.com/600x400" width={0} height={0} alt="placeholder" sizes="30vw" draggable={false}/>
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-kai-white w-[60%] h-[30%] opacity-80 flex flex-col justify-center items-center">
                                 <h3 className="text-center w-fit h-fit">COLLECTIONS</h3>
                             </div>
@@ -77,7 +77,7 @@ const HomePage = ({ covers }: { covers: string[] }) => {
                     </div>
                 </section>
                 <section id="about" className="w-full h-[60vw] flex flex-col justify-start items-center pt-6 bg-kai-grey">
-                    <h2 className="text-center w-fit h-fit mb-4">ABOUT US</h2>
+                    <h2 className="mb-4 text-center w-fit h-fit">ABOUT US</h2>
                     <div className="w-[90%] h-[40vw] grid grid-cols-3 grid-rows-1 gap-2 my-4">
                         <div className="relative w-full h-full">
                             <Image className="h-[40vw] w-full object-cover" src={"/images/story.webp"} width={0} height={0} alt="story.webp" sizes="30vw" draggable={false}/>

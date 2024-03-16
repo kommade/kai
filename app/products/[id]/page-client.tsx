@@ -4,17 +4,17 @@ import React, { useEffect } from 'react';
 import HeaderComponent from '@/components/HeaderComponent';
 import FooterComponent from '@/components/FooterComponent';;
 import { useState } from 'react';
-import { ProductData, ProductInCart, ProductOptions, SelectedProductOptions } from "@/lib/types";
+import Kai from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { changeProductNumberInCart } from "@/functions/database";
 import { getSessionIdAndCreateIfMissing } from "@/functions/sessions";
 
-const ProductSpecificPage = ({ product }: { product: ProductData }) => {
+const ProductSpecificPage = ({ product }: { product: Kai.ProductData }) => {
     const { name, desc, images, collection, price, options } = product;
     const [mainImage, setMainImage] = useState(images[0]);
     const [quantity, setQuantity] = useState(1);
-    const [selectedOptions, setSelectedOptions] = useState<SelectedProductOptions>(Object.fromEntries(Object.entries(options).map(([option, values]) => [option, values[0]])));
+    const [selectedOptions, setSelectedOptions] = useState<Kai.SelectedProductOptions>(Object.fromEntries(Object.entries(options).map(([option, values]) => [option, values[0]])));
     const [activeTab, setActiveTab] = useState('description');
     const [transition, setTransition] = useState(false);
     const [sessionId, setSessionId] = useState<string>("");
@@ -56,7 +56,7 @@ const ProductSpecificPage = ({ product }: { product: ProductData }) => {
             images,
             options: selectedOptions
         };
-        const productInCart: ProductInCart = {
+        const productInCart: Kai.ProductInCart = {
             product: nestedProduct,
             stringified: JSON.stringify(nestedProduct),
             count: quantity,
@@ -121,7 +121,7 @@ const ProductSpecificPage = ({ product }: { product: ProductData }) => {
                                 )}
                             </div>
                             {
-                                Object.entries(options as ProductOptions).map(([option, values]) => (
+                                Object.entries(options as Kai.ProductOptions).map(([option, values]) => (
                                     <React.Fragment key={option}>
                                         <h3 className="text-bold mb-2">{option}</h3>
                                         <div className='flex gap-2 mb-2'>
