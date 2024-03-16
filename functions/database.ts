@@ -90,7 +90,7 @@ export const getCollections = cache(async () => {
 }, undefined, { revalidate: revalidate })
 
 export const getHomeProductImages = cache(async () => {
-    const earringCover = (await redis.sinter("earrings"))[0];
+    const earringCover = (await redis.sinter("tags:earrings"))[0];
     //const setCover = (await redis.sinter("sets"))[0];
     //const necklaceCover = (await redis.sinter("necklace"))[0];
     const recentCollection = await redis.get("recent-collection");
