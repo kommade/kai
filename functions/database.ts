@@ -1,6 +1,6 @@
 "use server";
 
-import { Cart, ProductData, ProductInCart, ProductOptions, SelectedProductOptions } from "@/lib/types";
+import Kai from "@/lib/types";
 import { Redis } from '@upstash/redis'
 import { unstable_cache as cache } from "next/cache";
 
@@ -8,31 +8,31 @@ const redis = Redis.fromEnv();
 const revalidate = 3600;
 
 export const getProductKeys = cache(async () => {
-    const keys = await redis.lrange('products', 0, -1);
-    return keys;
+    const keys = await redis.scan(0, {match: "product:*"});
+    return keys[1];
 }, undefined, { revalidate: revalidate })
 
 export const getProducts = cache(async (keys: string[]) => {
     console.log("called!")
-    let products: ProductData[] = [];
+    let products: Kai.ProductData[] = [];
     for (let key of keys) {
         if (await redis.exists(key) === 0) {
             return { success: false, message: "Product(s) not found" };
         }
-        const res: (ProductData & { images: string | string[] }) | null = await redis.hgetall(key);
+        const res: (Kai.ProductData & { images: string | string[] }) | null = await redis.hgetall(key);
         if (res === null) {
             return { success: false, message: "Product(s) not found" };
         }
         res.images = (res.images as string).split(',');
         res.key = key;
-        products.push(res as ProductData);
+        products.push(res as Kai.ProductData);
     }
     return { success: true, data: products };
 }, undefined, { revalidate: revalidate })
 
 export const getTokens = cache(async () => {
-    const tokens = await redis.lrange('tokens', 0, -1);
-    return tokens;
+    const tokens = await redis.scan(0, {match: "tags:*"});
+    return tokens[1];
 }, undefined, { revalidate: revalidate })
 
 async function tokeniseSearchInput(input: string) {
@@ -70,16 +70,17 @@ async function tokeniseSearchInput(input: string) {
 }
 
 export const searchProducts = cache(async (input: string) => {
-    const tokens = await tokeniseSearchInput(input);
-    if (tokens.length === 0) {
+    const tags = await tokeniseSearchInput(input);
+    if (tags.length === 0) {
         return [];
     }
-    const result = await redis.sinter(tokens[0], ...tokens.slice(1));
+    tags.forEach((tag) => `tags:${tag}`);
+    const result = await redis.sinter(tags[0], ...tags.slice(1));
     return result;
 }, undefined, { revalidate: revalidate })
 
 export const getProductKeyFromId = cache(async (id: string) => {
-    const key = await redis.get(id);
+    const key = await redis.hget("idMap", id);
     return key as string;
 }, undefined, { revalidate: revalidate })
 
@@ -103,25 +104,25 @@ export const getHomeProductImages = cache(async () => {
 export const getCart = cache(async (cartId: string)  => {
     const cart = (await redis.hgetall(`cart:${cartId}`)) as Record<string, string>;
     if (cart === null) {
-        return [] as Cart;
+        return [] as Kai.Cart;
     }
     return Object.entries(cart).map(([product, count]) => {
-        const productData = JSON.parse(product) as ProductInCart["product"];
+        const productData = JSON.parse(product) as Kai.ProductInCart["product"];
         const countNum = parseInt(count);
         const total = countNum * parseInt(productData.price);
-        return { product: productData, stringified: product, count: countNum, total: total } as ProductInCart;
+        return { product: productData, stringified: product, count: countNum, total: total } as Kai.ProductInCart;
     });
 }, undefined, { revalidate: revalidate })
 
-export const changeProductNumberInCart = async (cartId: string, productInCart: ProductInCart, amount: number) => {
-    if (await redis.hget(`cart:${cartId}`, productInCart.stringified) === 1 && amount === -1) {
+export const changeProductNumberInCart = async (cartId: string, productInCart: Kai.ProductInCart, amount: number) => {
+    if (amount === -1 && await redis.hget(`cart:${cartId}`, productInCart.stringified) === 1) {
         return { success: false, message: "Cannot reduce count below 1, use deleteProductFromCart" };
     }
     await redis.hincrby(`cart:${cartId}`, productInCart.stringified, amount);
+    await redis.expire(`cart:${cartId}`, 3600, "GT");
 }
 
-
-export const deleteProductFromCart = async (cartId: string, productInCart: ProductInCart) => {
+export const deleteProductFromCart = async (cartId: string, productInCart: Kai.ProductInCart) => {
     await redis.hdel(`cart:${cartId}`, productInCart.stringified);
 }
 

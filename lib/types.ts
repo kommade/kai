@@ -23,7 +23,7 @@ namespace Kai {
             fullName: string;
             type: string;
             price: string;
-            images: string[];
+            image: string;
             options: SelectedProductOptions;
         }
         stringified: string;

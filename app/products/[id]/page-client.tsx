@@ -53,7 +53,7 @@ const ProductSpecificPage = ({ product }: { product: Kai.ProductData }) => {
             fullName: `${collection} - ${name}`,
             type: product.type,
             price,
-            images,
+            image: images[0],
             options: selectedOptions
         };
         const productInCart: Kai.ProductInCart = {
@@ -66,11 +66,11 @@ const ProductSpecificPage = ({ product }: { product: Kai.ProductData }) => {
     };
 
     return (
-        <main className="flex min-h-screen flex-col items-center justify-between">
+        <main className="flex flex-col items-center justify-between min-h-screen">
             <div className="w-full h-fit min-h-[100vh] min-w-[1024px] relative flex flex-col">
                 <HeaderComponent />
                 <section className="mt-[80px] w-full h-fit flex flex-col justify-start items-center py-6">
-                    <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-top">
+                    <div className="flex flex-col max-w-4xl mx-auto md:flex-row items-top">
                         <div className="mb-6 md:mr-6">
                             <Image src={mainImage} alt={name} className={`object-cover mb-2 w-[400px] h-[400px] transition-opacity ${ transition ? "opacity-50": "opacity-100"}`} width={400} height={400} sizes="400px" priority/>
                             <div className="flex space-x-2">
@@ -80,7 +80,7 @@ const ProductSpecificPage = ({ product }: { product: Kai.ProductData }) => {
                                             key={index}
                                             src={image}
                                             alt={name}
-                                            className="w-16 h-16 cursor-pointer border border-kai-grey object-cover hover:brightness-90 transition-all"
+                                            className="object-cover w-16 h-16 transition-all border cursor-pointer border-kai-grey hover:brightness-90"
                                             width={64}
                                             height={64}
                                             sizes="64px"
@@ -91,9 +91,9 @@ const ProductSpecificPage = ({ product }: { product: Kai.ProductData }) => {
                             </div>
                         </div>
                         <div className="max-w-md">
-                            <h3 className="text-2xl mb-2">{collection} {name}</h3>
-                            <h3 className="text-lg mb-2">{price}</h3>
-                            <div className="w-auto h-auto mb-5 relative">
+                            <h3 className="mb-2 text-2xl">{collection} {name}</h3>
+                            <h3 className="mb-2 text-lg">{price}</h3>
+                            <div className="relative w-auto h-auto mb-5">
                                 <div className="mb-2">
                                     <Button variant={"secondary"}
                                         className={`mr-2 bg-kai-white`}
@@ -110,7 +110,7 @@ const ProductSpecificPage = ({ product }: { product: Kai.ProductData }) => {
                                 </div>
                                 {activeTab === 'description' && (
                                     <>
-                                        <h3 className="text-gray-600 mb-4">{desc}</h3>
+                                        <h3 className="mb-4 text-gray-600">{desc}</h3>
                                     </>
                                 )}
 
@@ -123,7 +123,7 @@ const ProductSpecificPage = ({ product }: { product: Kai.ProductData }) => {
                             {
                                 Object.entries(options as Kai.ProductOptions).map(([option, values]) => (
                                     <React.Fragment key={option}>
-                                        <h3 className="text-bold mb-2">{option}</h3>
+                                        <h3 className="mb-2 text-bold">{option}</h3>
                                         <div className='flex gap-2 mb-2'>
                                             {
                                                 values.map((value) => (
@@ -141,11 +141,11 @@ const ProductSpecificPage = ({ product }: { product: Kai.ProductData }) => {
                                     </React.Fragment>
                                 ))
                             }
-                            <h3 className="text-bold mb-2">Quantity</h3>
-                            <div className="flex items-center mb-2 gap-4">
-                                <Button variant={"outline"} className="w-8 h-8 rounded-full text-lg" disabled={quantity===1} onClick={() => handleQuantityChange(quantity - 1)}>-</Button>
+                            <h3 className="mb-2 text-bold">Quantity</h3>
+                            <div className="flex items-center gap-4 mb-2">
+                                <Button variant={"outline"} className="w-8 h-8 text-lg rounded-full" disabled={quantity===1} onClick={() => handleQuantityChange(quantity - 1)}>-</Button>
                                 <h3 className="text-lg">{quantity}</h3>
-                                <Button variant={"outline"} className="w-8 h-8 rounded-full text-lg" onClick={() => handleQuantityChange(quantity + 1)}>+</Button>
+                                <Button variant={"outline"} className="w-8 h-8 text-lg rounded-full" onClick={() => handleQuantityChange(quantity + 1)}>+</Button>
                                 <Button variant={"default"} className={`w-24 h-8 ${quantity <= 0 ? 'bg-kai-grey cursor-not-allowed' : 'bg-kai-blue'} rounded-md`}
                                     onClick={handleAddToCart}>
                                     <h3 className="text-white" >Add to cart</h3>

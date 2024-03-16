@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { deleteCart } from "./database";
 
 type SessionId = string;
 
@@ -9,9 +10,9 @@ export async function getSessionId() {
     return cookieStore.get("session-id")?.value;
 }
 
-function setSessionId(sessionId: SessionId) {
+function setSessionId(sessionId: SessionId, expires?: Date) {
     const cookieStore = cookies();
-    cookieStore.set("session-id", sessionId);
+    cookieStore.set("session-id", sessionId, { expires });
 }
 
 export async function getSessionIdAndCreateIfMissing() {
@@ -23,4 +24,18 @@ export async function getSessionIdAndCreateIfMissing() {
     }
 
     return sessionId;
+}
+
+export async function clearSessionId() {
+    const cookieStore = cookies();
+    const sessionId = cookieStore.get("session-id")?.value;
+    cookieStore.delete("session-id");
+    if (sessionId) {
+        await deleteCart(sessionId);
+    }
+}
+
+export async function refreshSessionId() {
+    clearSessionId();
+    return getSessionIdAndCreateIfMissing();
 }
