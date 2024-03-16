@@ -3,6 +3,7 @@
 import Kai from "@/lib/types";
 import { Redis } from '@upstash/redis'
 import { unstable_cache as cache } from "next/cache";
+import { extendSessionId } from "./sessions";
 
 const redis = Redis.fromEnv();
 const revalidate = 3600;
@@ -107,12 +108,15 @@ export const getCart = cache(async (cartId: string)  => {
         return [] as Kai.Cart;
     }
     return Object.entries(cart).map(([product, count]) => {
+        if (product === "total") {
+            return;
+        }
         const productData = JSON.parse(product) as Kai.ProductInCart["product"];
         const countNum = parseInt(count);
         const total = countNum * parseInt(productData.price);
         return { product: productData, stringified: product, count: countNum, total: total } as Kai.ProductInCart;
-    });
-}, undefined, { revalidate: revalidate })
+    }).filter((product) => product !== undefined) as Kai.Cart;
+}, undefined, { revalidate: revalidate }) //0.5
 
 export const changeProductNumberInCart = async (cartId: string, productInCart: Kai.ProductInCart, amount: number) => {
     if (amount === -1 && await redis.hget(`cart:${cartId}`, productInCart.stringified) === 1) {
@@ -120,6 +124,7 @@ export const changeProductNumberInCart = async (cartId: string, productInCart: K
     }
     await redis.hincrby(`cart:${cartId}`, productInCart.stringified, amount);
     await redis.expire(`cart:${cartId}`, 3600, "GT");
+    await extendSessionId();
 }
 
 export const deleteProductFromCart = async (cartId: string, productInCart: Kai.ProductInCart) => {
@@ -128,4 +133,16 @@ export const deleteProductFromCart = async (cartId: string, productInCart: Kai.P
 
 export const deleteCart = async (cartId: string) => {
     await redis.del(`cart:${cartId}`);
+}
+
+export const setCartTotal = async (cartId: string, total: number) => {
+    await redis.hset(`cart:${cartId}`, {"total": total.toString()});
+}
+
+export const getCartTotal = async (cartId: string) => {
+    const total = await redis.hget(`cart:${cartId}`, "total");
+    if (typeof total !== "string") {
+        return 0;
+    }
+    return parseFloat(total);
 }

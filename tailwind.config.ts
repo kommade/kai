@@ -23,6 +23,7 @@ const config = {
                 "kai-white": "#fbfbf1",
                 "kai-yellow": "#fcda48",
                 "kai-grey": "#d9d9d9",
+                "kai-red": "#FF6B6B",
             },
             keyframes: {
                 "accordion-down": {
