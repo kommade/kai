@@ -6,13 +6,13 @@ import HeaderComponent from "@/components/HeaderComponent"
 import { Button } from "@/components/ui/button";
 import { changeProductNumberInCart, deleteProductFromCart, getCart } from "@/functions/database";
 import { getSessionId, getSessionIdAndCreateIfMissing } from "@/functions/sessions";
-import { Cart, ProductInCart, SelectedProductOptions } from "@/lib/types"
+import Kai from "@/lib/types"
 import { ColumnDef } from "@tanstack/react-table";
 import Image from "next/image";
 import React, { useEffect } from 'react'
 
-const CartPage = ({ data }: { data?: Cart}) => {
-    const [cart, setCart] = React.useState<Cart>(data || []);
+const CartPage = ({ data }: { data?: Kai.Cart}) => {
+    const [cart, setCart] = React.useState<Kai.Cart>(data || []);
     useEffect(() => {
         if (data) {
             return;
@@ -24,7 +24,7 @@ const CartPage = ({ data }: { data?: Cart}) => {
         fetchCart();
     }, [data])
 
-    const updateProductCount = async (product: ProductInCart, count?: number) => {
+    const updateProductCount = async (product: Kai.ProductInCart, count?: number) => {
         const session = await getSessionId();
         if (count === undefined) {
             await deleteProductFromCart(session!, product);
@@ -50,15 +50,15 @@ const CartPage = ({ data }: { data?: Cart}) => {
         })
     }
 
-    const columns: ColumnDef<ProductInCart>[] = [
+    const columns: ColumnDef<Kai.ProductInCart>[] = [
         {
             accessorKey: "product",
             header: "Item",
             cell: ({ row }) => {
-                const product = row.getValue("product") as ProductInCart["product"];
+                const product = row.getValue("product") as Kai.ProductInCart["product"];
                 return (
                     <div className="flex items-center gap-3">
-                        <Image src={product.images[0]} alt={product.name} className="w-[50px] h-[50px] object-cover rounded-md" width={50} height={50} sizes="50px"/>
+                        <Image src={product.image} alt={product.name} className="w-[50px] h-[50px] object-cover rounded-md" width={50} height={50} sizes="50px"/>
                         <div>
                             <h3>{product.fullName}</h3>
                             <p>{product.type.charAt(0).toUpperCase() + product.type.slice(1)}</p>
@@ -71,8 +71,8 @@ const CartPage = ({ data }: { data?: Cart}) => {
             accessorKey: "product",
             header: "Options",
             cell: ({ row }) => {
-                const product = row.getValue("product") as ProductInCart["product"];
-                const options = product.options as SelectedProductOptions;
+                const product = row.getValue("product") as Kai.ProductInCart["product"];
+                const options = product.options as Kai.SelectedProductOptions;
                 return Object.values(options).join(", ");
             }
         },
@@ -84,7 +84,7 @@ const CartPage = ({ data }: { data?: Cart}) => {
             accessorKey: "product",
             header: "Price",
             cell: ({ row }) => {
-                const product = row.getValue("product") as ProductInCart["product"];
+                const product = row.getValue("product") as Kai.ProductInCart["product"];
                 const price = parseFloat(product.price);
                 const formatted = new Intl.NumberFormat("en-US", {
                     style: "currency",
@@ -131,7 +131,7 @@ const CartPage = ({ data }: { data?: Cart}) => {
     ];    
 
     return (
-        <main className="flex min-h-screen flex-col items-center justify-between">
+        <main className="flex flex-col items-center justify-between min-h-screen">
             <div className="w-full h-fit min-h-[100vh] min-w-[1024px] relative flex flex-col">
                 <HeaderComponent/>
                 <section className="mt-[80px] min-h-[calc(100vh_-_140px)] w-full h-fit flex flex-col justify-start items-center py-6">
