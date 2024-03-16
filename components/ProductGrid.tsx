@@ -1,12 +1,12 @@
-import { ProductData } from "@/lib/types";
+import Kai from "@/lib/types";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
-const ProductItem = ({product}: {product: ProductData}) => {
+const ProductItem = ({product}: {product: Kai.ProductData}) => {
     const [hover, setHover] = React.useState(false);
     return (
-        <div className="bg-kai-white relative">
+        <div className="relative bg-kai-white">
             <div
                 className="absolute w-full h-[75%] bg-kai-white overflow-hidden"
                 onMouseEnter={() => setHover(true)}
@@ -19,7 +19,7 @@ const ProductItem = ({product}: {product: ProductData}) => {
                     </div>
                 </Link>
             </div>
-            <div className="absolute bottom-4 left-0 text-center w-full">
+            <div className="absolute left-0 w-full text-center bottom-4">
                 <h3 className="text-black">{product.collection} {product.name}</h3>
                 <h3 className="text-black">{product.price}</h3>
             </div>
@@ -27,7 +27,7 @@ const ProductItem = ({product}: {product: ProductData}) => {
     );
 };
 
-export const ProductGrid = ({ products }: { products: ProductData[] }) => {
+export const ProductGrid = ({ products }: { products: Kai.ProductData[] }) => {
     if (products.every((product) => !product)){
         return (
             <div className="w-[90%] h-[40vw] grid grid-cols-5 grid-rows-2 gap-5 my-4">
