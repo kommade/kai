@@ -81,7 +81,7 @@ const HomePage = ({ covers }: { covers: string[] }) => {
                     <div className="w-[90%] h-[40vw] grid grid-cols-3 grid-rows-1 gap-2 my-4">
                         <div className="relative w-full h-full">
                             <Image className="h-[40vw] w-full object-cover" src={"/images/story.webp"} width={0} height={0} alt="story.webp" sizes="30vw" draggable={false}/>
-                            <div className="z-10 absolute w-[13vw] h-[16vw] -right-[25%] -bottom-[2%] border shadow flex bg-kai-white justify-center -rotate-[20deg]">
+                            <div className="z-[9] absolute w-[13vw] h-[16vw] -right-[25%] -bottom-[2%] border shadow flex bg-kai-white justify-center -rotate-[20deg]">
                                 <Image
                                     className="h-full w-full object-cover p-[5%] pb-[30%]"
                                     src={"/images/kai.webp"}
@@ -94,7 +94,7 @@ const HomePage = ({ covers }: { covers: string[] }) => {
                         </div>
                        <div className="relative w-full h-full">
                             <Image className="h-[40vw] w-full object-cover" src={"/images/logo.webp"} width={0} height={0} alt="logo.webp" sizes="30vw" draggable={false} />
-                            <div className="z-10 absolute w-[13vw] h-[16vw] -right-[25%] -top-[5%] shadow flex bg-kai-white justify-center rotate-[20deg]">
+                            <div className="z-[9] absolute w-[13vw] h-[16vw] -right-[25%] -top-[5%] shadow flex bg-kai-white justify-center rotate-[20deg]">
                                 <Image
                                     className="h-full w-full object-cover p-[5%] pb-[30%]"
                                     src={"/images/rose.jpeg"}

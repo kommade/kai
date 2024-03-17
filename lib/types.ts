@@ -1,3 +1,5 @@
+import Stripe from "stripe";
+
 namespace Kai {
     export type ProductData = {
         id: string // This is the id in the URL
@@ -9,6 +11,7 @@ namespace Kai {
         desc: string;
         price: string;
         options: string | ProductOptions;
+        stripeId: string;
     };
 
     export type ProductOptions = {
@@ -25,6 +28,7 @@ namespace Kai {
             price: string;
             image: string;
             options: SelectedProductOptions;
+            stripeId: string;
         }
         stringified: string;
         count: number;
@@ -35,7 +39,10 @@ namespace Kai {
         [option: string]: string;
     };
 
-    export type Cart = ProductInCart[];
+    export type Cart = {
+        items: ProductInCart[]
+        total: number
+    };
 
     export type User = {
         id: string;
@@ -43,6 +50,12 @@ namespace Kai {
         hash: string;
         last: string;
     };
+
+    export type CheckoutSession = {
+        status: string;
+        address: Stripe.Address;
+        customer_name: string
+    }
 }
 
 export default Kai;

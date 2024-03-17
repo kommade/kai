@@ -102,18 +102,28 @@ export const getHomeProductImages = cache(async () => {
     return products.data!.map((product) => product.images[0]);
 }, undefined, { revalidate: revalidate })
 
-export const getCart = cache(async (cartId: string)  => {
+export const createCart = async (cartId: string) => {
+    await redis.hset(`cart:${cartId}`, { "Total": 0 });
+}
+
+export const getCart = cache(async (cartId: string) => {
     const cart = (await redis.hgetall(`cart:${cartId}`)) as Record<string, string>;
     if (cart === null) {
-        return [] as Kai.Cart;
+        return null;
     }
-    return Object.entries(cart).map(([product, count]) => {
-        const productData = JSON.parse(product) as Kai.ProductInCart["product"];
-        const countNum = parseInt(count);
-        const total = countNum * parseInt(productData.price);
-        return { product: productData, stringified: product, count: countNum, total: total } as Kai.ProductInCart;
-    });
-}, undefined, { revalidate: revalidate })
+    return {
+        total: parseFloat(cart["Total"]),
+        items: Object.entries(cart).filter(([key, value]) => key !== "Total").map(([key, value]) => {
+            const product = JSON.parse(key) as Kai.ProductInCart["product"];
+            return {
+                product: product,
+                stringified: key,
+                count: parseInt(value),
+                total: parseInt(product.price) * parseInt(value)
+            }
+        })
+    } as Kai.Cart;
+}, undefined, { revalidate: revalidate }) //0.5
 
 export const changeProductNumberInCart = async (cartId: string, productInCart: Kai.ProductInCart, amount: number) => {
     if (amount === -1 && await redis.hget(`cart:${cartId}`, productInCart.stringified) === 1) {
@@ -121,12 +131,52 @@ export const changeProductNumberInCart = async (cartId: string, productInCart: K
     }
     await redis.hincrby(`cart:${cartId}`, productInCart.stringified, amount);
     await redis.expire(`cart:${cartId}`, 3600, "GT");
+    await setCartTotal(cartId);
 }
 
 export const deleteProductFromCart = async (cartId: string, productInCart: Kai.ProductInCart) => {
     await redis.hdel(`cart:${cartId}`, productInCart.stringified);
+    await redis.expire(`cart:${cartId}`, 3600, "GT");
+    await setCartTotal(cartId);
 }
 
 export const deleteCart = async (cartId: string) => {
     await redis.del(`cart:${cartId}`);
+}
+
+export const setCartTotal = async (cartId: string) => {
+    const cart = await getCart(cartId);
+    const total = cart!.items.reduce((acc, curr) => acc + curr.total, 0);
+    await redis.expire(`cart:${cartId}`, 3600, "GT");
+    await redis.hset(`cart:${cartId}`, { "Total": total });
+}
+
+export const getCartTotal = async (cartId: string) => {
+    await setCartTotal(cartId);
+    const total = await redis.hget(`cart:${cartId}`, "Total");
+    await redis.expire(`cart:${cartId}`, 3600, "GT");
+    return total as number;
+}
+
+export const convertCartToOrder = async (cartId: string, checkout: Kai.CheckoutSession) => {
+    const cart = await getCart(cartId);
+    if (cart === null) {
+        return { success: false, message: "Cart not found" };
+    }
+    const orderId = await redis.incr("orderCount");
+    await redis.hset(`order:${orderId}`, { ...cart, ...checkout });
+    await deleteCart(cartId);
+    return { success: true, orderId: orderId };
+}
+
+export const preventCartTimeout = async (cartId: string) => {
+    await redis.persist(`cart:${cartId}`);
+}
+
+export const getOrder = async (orderId: number) => {
+    const order = await redis.hgetall(`order:${orderId}`);
+    if (order === null) {
+        return { success: false, message: "Order not found" };
+    }
+    return { success: true, data: order };
 }
