@@ -16,13 +16,7 @@ import React, { useEffect } from 'react'
 const ReturnPage = ({ session }: { session?: Kai.CheckoutSession }) => {
     const { toast } = useToast();
     const router = useRouter();
-    
-    if (!session) {
-        return (
-            <MessageComponent message="Something went wrong" />
-        )
-    }
-    
+
     useEffect(() => {
         const handleComplete = async (status: string) => {
             if (status === "paid") {
@@ -44,8 +38,14 @@ const ReturnPage = ({ session }: { session?: Kai.CheckoutSession }) => {
                 })
             }
         }
-        handleComplete(session.status);
+        handleComplete(session!.status);
     }, []);
+    
+    if (!session) {
+        return (
+            <MessageComponent message="Something went wrong" />
+        )
+    }
 
     if (session.status === "paid") {
         return (
