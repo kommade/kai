@@ -1,18 +1,21 @@
 import React, { Suspense } from 'react'
-import LoginPage from "./page-client"
+import DashboardPage from "./page-client"
+import { getSessionId, sessionIsActive, sessionIsExpired } from "@/functions/sessions"
+import { getCart } from "@/functions/database";
+import Kai from "@/lib/types";
 import MessageComponent from "@/components/MessageComponent";
-import { sessionIsActive, sessionIsExpired, getSessionId } from "@/functions/sessions";
 
 const CartPageWrapper = async () => {
     const sessionActive = await sessionIsActive();
     const sessionExpired = await sessionIsExpired();
-    let session: string | undefined;
+    let cart: Kai.Cart | undefined;
     if (sessionActive && !sessionExpired) {
-        session = await getSessionId();
+        const session = await getSessionId();
+        cart = (await getCart(session!))!;
     }
     return (
         <Suspense fallback={<MessageComponent message="Loading..."/>}>
-            <LoginPage session={session} />
+            <DashboardPage data={cart} expired={sessionExpired} />
         </Suspense>
     )
 }

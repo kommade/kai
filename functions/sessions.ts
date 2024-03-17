@@ -10,7 +10,7 @@ export async function getSessionId() {
     return cookieStore.get("session-id")?.value;
 }
 
-function setSessionId(sessionId: SessionId) {
+export async function setSessionId(sessionId: SessionId) {
     const cookieStore = cookies();
     cookieStore.set("session-id", sessionId);
 }

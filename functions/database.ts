@@ -3,6 +3,9 @@
 import Kai from "@/lib/types";
 import { Redis } from '@upstash/redis'
 import { unstable_cache as cache } from "next/cache";
+import bcrypt from 'bcrypt';
+import { setSessionId } from "./sessions";
+
 
 const redis = Redis.fromEnv();
 const revalidate = 3600;
@@ -102,8 +105,11 @@ export const getHomeProductImages = cache(async () => {
     return products.data!.map((product) => product.images[0]);
 }, undefined, { revalidate: revalidate })
 
-export const createCart = async (cartId: string) => {
+export const createCart = async (cartId: string, user = false) => {
     await redis.hset(`cart:${cartId}`, { "Total": 0 });
+    if (!user) {
+        await redis.expire(`cart:${cartId}`, 3600, "GT");
+    }
 }
 
 export const getCart = cache(async (cartId: string) => {
@@ -113,7 +119,7 @@ export const getCart = cache(async (cartId: string) => {
     }
     return {
         total: parseFloat(cart["Total"]),
-        items: Object.entries(cart).filter(([key, value]) => key !== "Total").map(([key, value]) => {
+        items: Object.entries(cart).filter(([key, _]) => key !== "Total").map(([key, value]) => {
             const product = JSON.parse(key) as Kai.ProductInCart["product"];
             return {
                 product: product,
@@ -125,18 +131,22 @@ export const getCart = cache(async (cartId: string) => {
     } as Kai.Cart;
 }, undefined, { revalidate: revalidate }) //0.5
 
-export const changeProductNumberInCart = async (cartId: string, productInCart: Kai.ProductInCart, amount: number) => {
+export const changeProductNumberInCart = async (cartId: string, productInCart: Kai.ProductInCart, amount: number, user = false) => {
     if (amount === -1 && await redis.hget(`cart:${cartId}`, productInCart.stringified) === 1) {
         return { success: false, message: "Cannot reduce count below 1, use deleteProductFromCart" };
     }
     await redis.hincrby(`cart:${cartId}`, productInCart.stringified, amount);
-    await redis.expire(`cart:${cartId}`, 3600, "GT");
+    if (!user) {
+        await redis.expire(`cart:${cartId}`, 3600, "GT");
+    }
     await setCartTotal(cartId);
 }
 
-export const deleteProductFromCart = async (cartId: string, productInCart: Kai.ProductInCart) => {
+export const deleteProductFromCart = async (cartId: string, productInCart: Kai.ProductInCart, user = false) => {
     await redis.hdel(`cart:${cartId}`, productInCart.stringified);
-    await redis.expire(`cart:${cartId}`, 3600, "GT");
+    if (!user) {
+        await redis.expire(`cart:${cartId}`, 3600, "GT");
+    }
     await setCartTotal(cartId);
 }
 
@@ -144,17 +154,21 @@ export const deleteCart = async (cartId: string) => {
     await redis.del(`cart:${cartId}`);
 }
 
-export const setCartTotal = async (cartId: string) => {
+export const setCartTotal = async (cartId: string, user = false) => {
     const cart = await getCart(cartId);
     const total = cart!.items.reduce((acc, curr) => acc + curr.total, 0);
-    await redis.expire(`cart:${cartId}`, 3600, "GT");
+    if (!user) {
+        await redis.expire(`cart:${cartId}`, 3600, "GT");
+    }
     await redis.hset(`cart:${cartId}`, { "Total": total });
 }
 
-export const getCartTotal = async (cartId: string) => {
+export const getCartTotal = async (cartId: string, user = false) => {
     await setCartTotal(cartId);
     const total = await redis.hget(`cart:${cartId}`, "Total");
-    await redis.expire(`cart:${cartId}`, 3600, "GT");
+    if (!user) {
+        await redis.expire(`cart:${cartId}`, 3600, "GT");
+    }
     return total as number;
 }
 
@@ -176,7 +190,21 @@ export const preventCartTimeout = async (cartId: string) => {
 export const getOrder = async (orderId: number) => {
     const order = await redis.hgetall(`order:${orderId}`);
     if (order === null) {
-        return { success: false, message: "Order not found" };
+        return { success: false, data: "Order not found" };
     }
     return { success: true, data: order };
+}
+
+export const login = async (email: string, password: string) => {
+    const user = await redis.hget("users", email) as Kai.User | null;
+    if (user === null) {
+        return { success: false, data: "User not found" };
+    }
+    if (bcrypt.compareSync(password, user.hash)) {
+        await redis.hset("users", { [email]: JSON.stringify({ ...user, last: new Date().toISOString() }) });
+        await setSessionId(email);
+        return { success: true, data: user };
+    } else {
+        return { success: false, data: "Incorrect password" };
+    }
 }
