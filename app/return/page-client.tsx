@@ -23,30 +23,31 @@ const ReturnPage = ({ session }: { session?: Kai.CheckoutSession }) => {
         )
     }
     
-    
-
-    if (session.status === "paid") {
-        useEffect(() => {
-            const handleComplete = async () => {
+    useEffect(() => {
+        const handleComplete = async (status: string) => {
+            if (status === "paid") {
                 const session_id = await getSessionId();
                 if (session_id) {
                     const res = await convertCartToOrder(session_id);
                     if (res.success) {
                         clearSessionId();
-                    } else {
-                        await preventCartTimeout(session_id);
-                        const emailLink = `mailto:kaistudios46@gmail.com?subject=Order paid for but not saved?body=I recently ordered from your website. Order ID: ${session_id} Please help me with this issue. Thank you.`
-                        toast({
-                            description: "Your order was not saved due to an error. Please contact us at kaistudios46@gmail.com.",
-                            variant: "destructive",
-                            action: <ToastAction altText="Contact Us"><Link href={emailLink}>Contact us</Link></ToastAction>,
-                            duration: 10000
-                        })
+                        return;
                     }
+                    await preventCartTimeout(session_id);
                 }
+                const emailLink = `mailto:kaistudios46@gmail.com?subject=Order paid for but not saved?body=I recently ordered from your website. Order ID: ${session_id ?? "Not saved"} Please help me with this issue. Thank you.`
+                toast({
+                    description: "Your order was not saved due to an error. Please contact us at kaistudios46@gmail.com.",
+                    variant: "destructive",
+                    action: <ToastAction altText="Contact Us"><Link href={emailLink}>Contact us</Link></ToastAction>,
+                    duration: 10000
+                })
             }
-            handleComplete();
-        }, []);
+        }
+        handleComplete(session.status);
+    }, []);
+
+    if (session.status === "paid") {
         return (
             <main className="flex flex-col items-center justify-between min-h-screen">
                 <div className="w-full h-fit min-h-[100vh] min-w-[1024px] relative flex flex-col">
