@@ -54,7 +54,8 @@ const ProductSpecificPage = ({ product }: { product: Kai.ProductData }) => {
             type: product.type,
             price,
             image: images[0],
-            options: selectedOptions
+            options: selectedOptions,
+            stripeId: product.stripeId
         };
         const productInCart: Kai.ProductInCart = {
             product: nestedProduct,
@@ -62,6 +63,7 @@ const ProductSpecificPage = ({ product }: { product: Kai.ProductData }) => {
             count: quantity,
             total: parseInt(price) * quantity
         };
+        console.log(productInCart)
         changeProductNumberInCart(sessionId, productInCart, quantity);
     };
 

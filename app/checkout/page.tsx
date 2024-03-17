@@ -1,31 +1,29 @@
 import React, { Suspense } from 'react'
 import CheckoutPage from "./page-client"
 import { getSessionId, sessionIsActive, sessionIsExpired } from "@/functions/sessions"
-import { getCart, getCartTotal, setCartTotal } from "@/functions/database";
+import { getCart, getCartTotal } from "@/functions/database";
 import Kai from "@/lib/types";
+import { createCheckoutSession } from "@/functions/stripe";
+import MessageComponent from "@/components/MessageComponent";
 
 const CheckoutPageWrapper = async () => {
     const sessionActive = await sessionIsActive();
     const sessionExpired = await sessionIsExpired();
-    let total: number | undefined;
-    let emptyCart = false;
+    let total: number = 0;
+    let session_id: string | undefined;
+    let cart: undefined | Kai.Cart;
     if (sessionActive && !sessionExpired) {
-        const session = await getSessionId();
-        total = await getCartTotal(session!);
-        if (total === 0) {
-            const cart = await getCart(session!) as Kai.Cart;
-            if (cart.items.length != 0) {
-                const cartTotal = cart.items.reduce((acc, curr) => acc + curr.total, 0);
-                setCartTotal(session!);
-                total = cartTotal;
-            } else {
-                emptyCart = true;
-            }
-        }
+        session_id = await getSessionId();
+        cart = await getCart(session_id!) as Kai.Cart;
+        total = await getCartTotal(session_id!);
+    }
+    let checkoutSession = "";
+    if (cart) {
+        checkoutSession = await createCheckoutSession(cart);
     }
     return (
-        <Suspense fallback={<div>Loading...</div>}>
-            <CheckoutPage data={{total}} expired={sessionExpired} cartEmpty={emptyCart} />
+        <Suspense fallback={<MessageComponent message="Loading..."/>}>
+            <CheckoutPage data={{checkoutSession, total}} expired={sessionExpired} />
         </Suspense>
     )
 }

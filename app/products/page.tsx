@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react'
 import ProductPage from "./page-client"
 import { getCollections, getProductKeys, getProducts } from "@/functions/database"
+import MessageComponent from "@/components/MessageComponent";
 
 const ProductPageWrapper = async () => {
     const itemsPerPage = 12;
@@ -13,11 +14,11 @@ const ProductPageWrapper = async () => {
 
     if (!products.success) {
         return (
-            <div>Error fetching products</div>
+            <MessageComponent message="Something went wrong"/>
         )
     };
     return (
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<MessageComponent message="Loading..."/>}>
             <ProductPage products={products.data!} totalPages={totalPages} keys={productKeys} collections={collections} />
         </Suspense>
     )

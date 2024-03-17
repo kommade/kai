@@ -2,8 +2,7 @@
 
 import Kai from "@/lib/types";
 import { Redis } from '@upstash/redis'
-import { unstable_cache as cache, revalidatePath } from "next/cache";
-import { extendSessionId } from "./sessions";
+import { unstable_cache as cache } from "next/cache";
 
 const redis = Redis.fromEnv();
 const revalidate = 3600;
@@ -102,10 +101,14 @@ export const getHomeProductImages = cache(async () => {
     return products.data!.map((product) => product.images[0]);
 }, undefined, { revalidate: revalidate })
 
-export const getCart = cache(async (cartId: string)  => {
+export const createCart = async (cartId: string) => {
+    await redis.hset(`cart:${cartId}`, { "Total": 0 });
+}
+
+export const getCart = cache(async (cartId: string) => {
     const cart = (await redis.hgetall(`cart:${cartId}`)) as Record<string, string>;
     if (cart === null) {
-        return {total: 0, items: []} as Kai.Cart;
+        return null;
     }
     return {
         total: parseFloat(cart["Total"]),
@@ -122,27 +125,18 @@ export const getCart = cache(async (cartId: string)  => {
 }, undefined, { revalidate: revalidate }) //0.5
 
 export const changeProductNumberInCart = async (cartId: string, productInCart: Kai.ProductInCart, amount: number) => {
-    try {
-        if (amount === -1 && await redis.hget(`cart:${cartId}`, productInCart.stringified) === 1) {
-            return { success: false, message: "Cannot reduce count below 1, use deleteProductFromCart" };
-        }
-        await redis.hincrby(`cart:${cartId}`, productInCart.stringified, amount);
-        await redis.expire(`cart:${cartId}`, 3600, "GT");
-        await extendSessionId();
-        await setCartTotal(cartId);
-    } catch (e) {
-        revalidatePath("/cart");
+    if (amount === -1 && await redis.hget(`cart:${cartId}`, productInCart.stringified) === 1) {
+        return { success: false, message: "Cannot reduce count below 1, use deleteProductFromCart" };
     }
+    await redis.hincrby(`cart:${cartId}`, productInCart.stringified, amount);
+    await redis.expire(`cart:${cartId}`, 3600, "GT");
+    await setCartTotal(cartId);
 }
 
 export const deleteProductFromCart = async (cartId: string, productInCart: Kai.ProductInCart) => {
-    try {
-        await redis.hdel(`cart:${cartId}`, productInCart.stringified);
-        await extendSessionId();
-        await setCartTotal(cartId);
-    } catch (e) {
-        revalidatePath("/cart");
-    }
+    await redis.hdel(`cart:${cartId}`, productInCart.stringified);
+    await redis.expire(`cart:${cartId}`, 3600, "GT");
+    await setCartTotal(cartId);
 }
 
 export const deleteCart = async (cartId: string) => {
@@ -151,14 +145,29 @@ export const deleteCart = async (cartId: string) => {
 
 export const setCartTotal = async (cartId: string) => {
     const cart = await getCart(cartId);
-    const total = cart.items.reduce((acc, curr) => acc + curr.total, 0);
+    const total = cart!.items.reduce((acc, curr) => acc + curr.total, 0);
+    await redis.expire(`cart:${cartId}`, 3600, "GT");
     await redis.hset(`cart:${cartId}`, { "Total": total });
 }
 
 export const getCartTotal = async (cartId: string) => {
+    await setCartTotal(cartId);
     const total = await redis.hget(`cart:${cartId}`, "Total");
-    if (typeof total !== "string") {
-        return 0;
+    await redis.expire(`cart:${cartId}`, 3600, "GT");
+    return total as number;
+}
+
+export const convertCartToOrder = async (cartId: string) => {
+    const cart = await getCart(cartId);
+    if (cart === null) {
+        return { success: false, message: "Cart not found" };
     }
-    return parseFloat(total);
+    const orderId = await redis.incr("orderCount");
+    await redis.hset(`order:${orderId}`, { ...cart });
+    await deleteCart(cartId);
+    return { success: true, orderId: orderId };
+}
+
+export const preventCartTimeout = async (cartId: string) => {
+    await redis.persist(`cart:${cartId}`);
 }

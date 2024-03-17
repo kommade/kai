@@ -9,6 +9,7 @@ namespace Kai {
         desc: string;
         price: string;
         options: string | ProductOptions;
+        stripeId: string;
     };
 
     export type ProductOptions = {
@@ -25,6 +26,7 @@ namespace Kai {
             price: string;
             image: string;
             options: SelectedProductOptions;
+            stripeId: string;
         }
         stringified: string;
         count: number;
@@ -46,6 +48,11 @@ namespace Kai {
         hash: string;
         last: string;
     };
+
+    export type CheckoutSession = {
+        status: string;
+        customer_email: string;
+    }
 }
 
 export default Kai;

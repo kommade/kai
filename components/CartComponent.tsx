@@ -1,9 +1,9 @@
 import { getCart, deleteProductFromCart, changeProductNumberInCart } from "@/functions/database";
-import { getSessionIdAndCreateIfMissing, getSessionId, extendSessionId } from "@/functions/sessions";
+import { getSessionIdAndCreateIfMissing, getSessionId } from "@/functions/sessions";
 import Kai from "@/lib/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { Minus, Plus, XIcon } from "lucide-react";
-import React, { useEffect, useOptimistic } from 'react'
+import React, { useEffect } from 'react'
 import { Button } from "./ui/button";
 import Image from "next/image";
 import { CartTable } from "./DataTable";
@@ -11,50 +11,47 @@ import { useRouter } from "next/navigation";
 
 const CartComponent = ({ data }: { data: Kai.Cart | undefined }) => {
     const router = useRouter();
-    const [optimisticCart, changeOptimisticCart] = useOptimistic(
-        { cart: data || { items: [], total: 0 }, updating: false },
-        (state, next: Kai.Cart) => ({
-            ...state,
-            cart: next,
-            updating: true
-        })
-    );
+    const [cart, setCart] = React.useState<Kai.Cart>(data || { items: [], total: 0 });
     useEffect(() => {
         if (data) {
             return;
         }
         const fetchCart = async () => {
             const session = await getSessionIdAndCreateIfMissing();
-            changeOptimisticCart(await getCart(session))
+            setCart(await getCart(session!)|| { items: [], total: 0 })
         }
         fetchCart();
     }, [data])
 
-    const updateProductCount = async (product: Kai.ProductInCart, count?: number) => {
+    const updateProductCount = React.useCallback(async (product: Kai.ProductInCart, count?: number) => {
         const session = await getSessionId();
         if (count === undefined) {
-            changeOptimisticCart({
-                items: optimisticCart.cart.items.filter((inCart) => inCart.stringified !== product.stringified),
-                total: optimisticCart.cart.total - product.total
-            });
             await deleteProductFromCart(session!, product);
-        } else {
-            changeOptimisticCart({
-                items: optimisticCart.cart.items.map((inCart) => {
-                    if (inCart.stringified === product.stringified) {
-                        return {
-                            ...inCart,
-                            count: inCart.count + count,
-                            total: inCart.total + (parseFloat(product.product.price) * count)
-                        }
-                    }
-                    return inCart;
-                }),
-                total: optimisticCart.cart.total + (parseFloat(product.product.price) * count)
-            })
-            await changeProductNumberInCart(session!, product, count);
+            setCart((prev) => ({
+                total: prev.total - product.total,
+                items: prev.items.filter((inCart) => inCart.stringified !== product.stringified)
+            }));
+            return;
         }
-    }
+        await changeProductNumberInCart(session!, product, count);
+        setCart((prev) => {
+            const newItems = prev.items.map((inCart) => {
+                if (inCart.stringified === product.stringified) {
+                    return {
+                        ...inCart,
+                        count: inCart.count + count,
+                        total: inCart.total + (count * parseFloat(product.product.price))
+                    }
+                }
+                return inCart;
+            }).filter((inCart) => inCart.count > 0);
+            return {
+                total: newItems.reduce((acc, curr) => acc + curr.total, 0),
+                items: newItems
+            }
+        
+        })
+    }, [setCart])
 
     const columns: ColumnDef<Kai.ProductInCart>[] = [
         {
@@ -139,14 +136,14 @@ const CartComponent = ({ data }: { data: Kai.Cart | undefined }) => {
     
     return (
         <>
-            <CartTable columns={columns} data={optimisticCart.cart.items} />
+            <CartTable columns={columns} data={cart.items} />
             <div className="flex flex-col items-end justify-between w-full gap-2 my-8">
                 <Button
+                    disabled={cart.items.length === 0}
                     className="w-[100px] self-center"
                     variant={"default"}
                     onClick={
                         () => {
-                            extendSessionId();
                             router.push('/checkout')
                         }
                     }>
@@ -157,4 +154,4 @@ const CartComponent = ({ data }: { data: Kai.Cart | undefined }) => {
     );
 }
 
-export default CartComponent
+export default React.memo(CartComponent)
