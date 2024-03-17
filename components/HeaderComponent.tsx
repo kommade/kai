@@ -1,7 +1,7 @@
 import Link from "next/link"
 import React from 'react'
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from "./ui/navigation-menu"
-import { ShoppingCart } from "lucide-react"
+import { LogIn, ShoppingCart } from "lucide-react"
 
 const HeaderComponent = () => {
     return (
@@ -41,7 +41,14 @@ const HeaderComponent = () => {
                         </NavigationMenuItem>
                         <NavigationMenuItem>
                             <Link href={"/about"} legacyBehavior passHref>
-                                <NavigationMenuLink>About us</NavigationMenuLink>
+                                <NavigationMenuLink className="pl-2">About us</NavigationMenuLink>
+                            </Link>
+                        </NavigationMenuItem>
+                        <NavigationMenuItem>
+                            <Link href={"/login"} legacyBehavior passHref>
+                                <NavigationMenuLink className="pl-2">
+                                    Sign in
+                                </NavigationMenuLink>
                             </Link>
                         </NavigationMenuItem>
                         <NavigationMenuItem>
