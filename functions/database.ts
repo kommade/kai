@@ -157,17 +157,25 @@ export const getCartTotal = async (cartId: string) => {
     return total as number;
 }
 
-export const convertCartToOrder = async (cartId: string) => {
+export const convertCartToOrder = async (cartId: string, checkout: Kai.CheckoutSession) => {
     const cart = await getCart(cartId);
     if (cart === null) {
         return { success: false, message: "Cart not found" };
     }
     const orderId = await redis.incr("orderCount");
-    await redis.hset(`order:${orderId}`, { ...cart });
+    await redis.hset(`order:${orderId}`, { ...cart, ...checkout });
     await deleteCart(cartId);
     return { success: true, orderId: orderId };
 }
 
 export const preventCartTimeout = async (cartId: string) => {
     await redis.persist(`cart:${cartId}`);
+}
+
+export const getOrder = async (orderId: number) => {
+    const order = await redis.hgetall(`order:${orderId}`);
+    if (order === null) {
+        return { success: false, message: "Order not found" };
+    }
+    return { success: true, data: order };
 }

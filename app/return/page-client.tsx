@@ -6,7 +6,7 @@ import MessageComponent from "@/components/MessageComponent"
 import { Button } from "@/components/ui/button"
 import { ToastAction } from "@/components/ui/toast";
 import { useToast } from "@/components/ui/use-toast";
-import { convertCartToOrder, preventCartTimeout } from "@/functions/database"
+import { convertCartToOrder, getOrder, preventCartTimeout } from "@/functions/database"
 import { clearSessionId, getSessionId } from "@/functions/sessions"
 import Kai from "@/lib/types"
 import Link from "next/link";
@@ -16,13 +16,18 @@ import React, { useEffect } from 'react'
 const ReturnPage = ({ session }: { session?: Kai.CheckoutSession }) => {
     const router = useRouter();
     const { toast } = useToast();
-    
+    const [orderId, setOrderId] = React.useState<number | undefined>(undefined);
+
     useEffect(() => {
-        const handleComplete = async (status: string) => {
-            if (status === "paid") {
+        const handleComplete = async (session?: Kai.CheckoutSession) => {
+            if (!session || orderId) {
+                return;
+            }
+            if (session.status === "paid") {
                 const session_id = await getSessionId();
                 if (session_id) {
-                    const res = await convertCartToOrder(session_id);
+                    const res = await convertCartToOrder(session_id, session);
+                    setOrderId(res.orderId);
                     if (res.success) {
                         clearSessionId();
                         return;
@@ -34,11 +39,11 @@ const ReturnPage = ({ session }: { session?: Kai.CheckoutSession }) => {
                     description: "Your order was not saved due to an error. Please contact us at kaistudios46@gmail.com.",
                     variant: "destructive",
                     action: <ToastAction altText="Contact Us"><Link href={emailLink}>Contact us</Link></ToastAction>,
-                    duration: 10000
+                    duration: 5000
                 })
             }
         }
-        handleComplete(session!.status);
+        handleComplete(session);
     }, [session]);
     
     if (!session) {

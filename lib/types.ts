@@ -1,3 +1,5 @@
+import Stripe from "stripe";
+
 namespace Kai {
     export type ProductData = {
         id: string // This is the id in the URL
@@ -51,7 +53,8 @@ namespace Kai {
 
     export type CheckoutSession = {
         status: string;
-        customer_email: string;
+        address: Stripe.Address;
+        customer_name: string
     }
 }
 

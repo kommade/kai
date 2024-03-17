@@ -42,12 +42,13 @@ export const getCheckoutSession = async (sessionId: string) => {
         const session = await stripe.checkout.sessions.retrieve(sessionId);
         return {
             status: session.payment_status,
+            address: session.shipping_details?.address,
+            customer_name: session.shipping_details?.name
         } as Kai.CheckoutSession;
     } catch (error) {
         console.error(error);
         return {
             status: "error",
-            customer_email: ""
         } as Kai.CheckoutSession;
     }
 }
