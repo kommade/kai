@@ -15,9 +15,9 @@ import React, { useEffect } from 'react'
 
 const ReturnPage = ({ session }: { session?: Kai.CheckoutSession }) => {
     const router = useRouter();
+    const { toast } = useToast();
     
     useEffect(() => {
-        const { toast } = useToast();
         const handleComplete = async (status: string) => {
             if (status === "paid") {
                 const session_id = await getSessionId();

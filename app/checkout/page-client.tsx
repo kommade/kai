@@ -18,8 +18,8 @@ const CheckoutPage = ({ data, expired }:
     expired: boolean
     }
 ) => {
+    const router = useRouter();
     useEffect(() => {
-        const router = useRouter();
         if (expired || data.checkoutSession === "" || data.total === 0) {
             router.push("/cart?error=true");
         }
