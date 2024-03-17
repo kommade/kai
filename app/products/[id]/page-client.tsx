@@ -146,6 +146,8 @@ const ProductSpecificPage = ({ product }: { product: Kai.ProductData }) => {
                                 <Button variant={"outline"} className="w-8 h-8 text-lg rounded-full" disabled={quantity===1} onClick={() => handleQuantityChange(quantity - 1)}>-</Button>
                                 <h3 className="text-lg">{quantity}</h3>
                                 <Button variant={"outline"} className="w-8 h-8 text-lg rounded-full" onClick={() => handleQuantityChange(quantity + 1)}>+</Button>
+                            </div>
+                            <div className="flex items-center gap-4 mt-5">
                                 <Button variant={"default"} className={`w-24 h-8 ${quantity <= 0 ? 'bg-kai-grey cursor-not-allowed' : 'bg-kai-blue'} rounded-md`}
                                     onClick={handleAddToCart}>
                                     <h3 className="text-white" >Add to cart</h3>

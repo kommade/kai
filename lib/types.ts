@@ -35,7 +35,10 @@ namespace Kai {
         [option: string]: string;
     };
 
-    export type Cart = ProductInCart[];
+    export type Cart = {
+        items: ProductInCart[]
+        total: number
+    };
 
     export type User = {
         id: string;

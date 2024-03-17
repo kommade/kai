@@ -14,9 +14,9 @@ const CheckoutPageWrapper = async () => {
         total = await getCartTotal(session!);
         if (total === 0) {
             const cart = await getCart(session!) as Kai.Cart;
-            if (cart.length != 0) {
-                const cartTotal = cart.reduce((acc, curr) => acc + curr.total, 0);
-                setCartTotal(session!, cartTotal);
+            if (cart.items.length != 0) {
+                const cartTotal = cart.items.reduce((acc, curr) => acc + curr.total, 0);
+                setCartTotal(session!);
                 total = cartTotal;
             } else {
                 emptyCart = true;
@@ -25,7 +25,7 @@ const CheckoutPageWrapper = async () => {
     }
     return (
         <Suspense fallback={<div>Loading...</div>}>
-            <CheckoutPage data={total} expired={sessionExpired} cartEmpty={emptyCart} />
+            <CheckoutPage data={{total}} expired={sessionExpired} cartEmpty={emptyCart} />
         </Suspense>
     )
 }

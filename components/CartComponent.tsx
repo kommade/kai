@@ -3,7 +3,7 @@ import { getSessionIdAndCreateIfMissing, getSessionId, extendSessionId } from "@
 import Kai from "@/lib/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { Minus, Plus, XIcon } from "lucide-react";
-import React, { useEffect } from 'react'
+import React, { useEffect, useOptimistic } from 'react'
 import { Button } from "./ui/button";
 import Image from "next/image";
 import { CartTable } from "./DataTable";
@@ -11,14 +11,21 @@ import { useRouter } from "next/navigation";
 
 const CartComponent = ({ data }: { data: Kai.Cart | undefined }) => {
     const router = useRouter();
-    const [cart, setCart] = React.useState<Kai.Cart>(data || []);
+    const [optimisticCart, changeOptimisticCart] = useOptimistic(
+        { cart: data || { items: [], total: 0 }, updating: false },
+        (state, next: Kai.Cart) => ({
+            ...state,
+            cart: next,
+            updating: true
+        })
+    );
     useEffect(() => {
         if (data) {
             return;
         }
         const fetchCart = async () => {
             const session = await getSessionIdAndCreateIfMissing();
-            setCart(await getCart(session))
+            changeOptimisticCart(await getCart(session))
         }
         fetchCart();
     }, [data])
@@ -26,27 +33,27 @@ const CartComponent = ({ data }: { data: Kai.Cart | undefined }) => {
     const updateProductCount = async (product: Kai.ProductInCart, count?: number) => {
         const session = await getSessionId();
         if (count === undefined) {
+            changeOptimisticCart({
+                items: optimisticCart.cart.items.filter((inCart) => inCart.stringified !== product.stringified),
+                total: optimisticCart.cart.total - product.total
+            });
             await deleteProductFromCart(session!, product);
-            setCart((prev) => prev.filter((inCart) => inCart.stringified !== product.stringified));
-            return;
-        }
-        const res = await changeProductNumberInCart(session!, product, count);
-        if (res && !res.success) {
-            return;
-        }
-        setCart((prev) => {
-            const newCart = prev.map((inCart) => {
-                if (inCart.stringified === product.stringified) {
-                    return {
-                        ...inCart,
-                        count: inCart.count + count,
-                        total: parseFloat(inCart.product.price) * (inCart.count + count)
+        } else {
+            changeOptimisticCart({
+                items: optimisticCart.cart.items.map((inCart) => {
+                    if (inCart.stringified === product.stringified) {
+                        return {
+                            ...inCart,
+                            count: inCart.count + count,
+                            total: inCart.total + (parseFloat(product.product.price) * count)
+                        }
                     }
-                }
-                return inCart;
+                    return inCart;
+                }),
+                total: optimisticCart.cart.total + (parseFloat(product.product.price) * count)
             })
-            return newCart;
-        })
+            await changeProductNumberInCart(session!, product, count);
+        }
     }
 
     const columns: ColumnDef<Kai.ProductInCart>[] = [
@@ -107,7 +114,6 @@ const CartComponent = ({ data }: { data: Kai.Cart | undefined }) => {
             cell: ({ row }) => {
                 const count = row.getValue("count") as number;
                 const product = row.original;
-                console.log(count);
                 return (
                     <div className="flex items-center gap-2">
                         <Button className="w-[40px] p-0 text-lg rounded-full" variant={"ghost"} disabled={count === 1} onClick={() => updateProductCount(product, -1)}><Minus width={16} height={16}/></Button>
@@ -131,42 +137,12 @@ const CartComponent = ({ data }: { data: Kai.Cart | undefined }) => {
         }
     ];
     
-    const shipping = 1.50;
-    const orderAmount = cart.reduce((acc, curr) => acc + curr.total, 0);
-    const discount = 0;
     return (
         <>
-            <CartTable columns={columns} data={cart} />
-            <div className="flex flex-col items-end justify-end w-full gap-2 mt-4">
-                <div className="flex flex-row gap-2">
-                    <div className="flex flex-col text-right">
-                        <h3 className="text-lg">Shipping: </h3>
-                        <h3 className="text-lg">Order amount: </h3>
-                        { discount > 0 && <h3 className="text-lg">Discount: </h3>}
-                        <h3 className="text-lg">Total: </h3>
-                    </div>
-                    <div className="flex flex-col">
-                        <h3 className="text-lg">{new Intl.NumberFormat("en-US", {
-                            style: "currency",
-                            currency: "SGD",
-                        }).format(shipping)}</h3>
-                        <h3 className="text-lg">{new Intl.NumberFormat("en-US", {
-                            style: "currency",
-                            currency: "SGD",
-                        }).format(orderAmount)}</h3>
-                        { discount > 0 && <h3 className="text-lg">{new Intl.NumberFormat("en-US", {
-                            style: "currency",
-                            currency: "SGD",
-                        }).format(discount * (shipping + orderAmount))}</h3>}
-                        <h3 className="text-lg">{new Intl.NumberFormat("en-US", {
-                            style: "currency",
-                            currency: "SGD",
-                        }).format((orderAmount + shipping) * (1 - discount))}</h3>
-                    </div>
-                </div>
-                
+            <CartTable columns={columns} data={optimisticCart.cart.items} />
+            <div className="flex flex-col items-end justify-between w-full gap-2 my-8">
                 <Button
-                    className="w-[100px]"
+                    className="w-[100px] self-center"
                     variant={"default"}
                     onClick={
                         () => {
