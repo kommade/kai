@@ -18,12 +18,12 @@ const CheckoutPage = ({ data, expired }:
     expired: boolean
     }
 ) => {
-    const router = useRouter();
     useEffect(() => {
+        const router = useRouter();
         if (expired || data.checkoutSession === "" || data.total === 0) {
             router.push("/cart?error=true");
         }
-    }, []);
+    }, [expired, data.checkoutSession, data.total]);
     return (
         <main className="flex flex-col items-center justify-between min-h-screen">
             <div className="w-full h-fit min-h-[100vh] min-w-[1024px] relative flex flex-col">

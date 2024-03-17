@@ -14,10 +14,10 @@ import { useRouter } from "next/navigation"
 import React, { useEffect } from 'react'
 
 const ReturnPage = ({ session }: { session?: Kai.CheckoutSession }) => {
-    const { toast } = useToast();
     const router = useRouter();
-
+    
     useEffect(() => {
+        const { toast } = useToast();
         const handleComplete = async (status: string) => {
             if (status === "paid") {
                 const session_id = await getSessionId();
@@ -39,7 +39,7 @@ const ReturnPage = ({ session }: { session?: Kai.CheckoutSession }) => {
             }
         }
         handleComplete(session!.status);
-    }, []);
+    }, [session]);
     
     if (!session) {
         return (
