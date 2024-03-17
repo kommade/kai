@@ -81,6 +81,7 @@ export const searchProducts = cache(async (input: string) => {
 
 export const getProductKeyFromId = cache(async (id: string) => {
     const key = await redis.hget("idMap", id);
+    console.log(key);
     return key as string;
 }, undefined, { revalidate: revalidate })
 
