@@ -1,5 +1,19 @@
 import Stripe from "stripe";
 
+export type Expand<T> = T extends (...args: infer A) => infer R
+  ? (...args: Expand<A>) => Expand<R>
+  : T extends infer O
+  ? { [K in keyof O]: O[K] }
+  : never;
+
+export type ExpandRecursively<T> = T extends (...args: infer A) => infer R
+  ? (...args: ExpandRecursively<A>) => ExpandRecursively<R>
+  : T extends object
+  ? T extends infer O
+    ? { [K in keyof O]: ExpandRecursively<O[K]> }
+    : never
+    : T;
+  
 namespace Kai {
     export type ProductData = {
         id: string // This is the id in the URL
@@ -45,17 +59,34 @@ namespace Kai {
     };
 
     export type User = {
-        id: string;
-        role: string;
+        email: string;
         hash: string;
+        role: string;
         last: string;
     };
 
     export type CheckoutSession = {
-        status: string;
-        address: Stripe.Address;
+        payment_status: string;
+        address: Expand<Stripe.Address>;
         customer_name: string
+        customer_email: string
+        payment_id: string,
+        amount_total: number,
+        invoice_id: string,
     }
+
+    export type UserResult =
+        | { loggedIn: false; user: string }
+        | { loggedIn: true; user: Kai.User };
+    
+    export type Order = ExpandRecursively<CheckoutSession> & Omit<Cart, 'total'> & {
+        order_status: "pending" | "shipped" | "delivered" | "cancelled" | "refunded";
+        shipping_provider?: string;
+        tracking_number?: string;
+        refund_id?: string;
+    };
+
+    export type Orders = Record<string, Kai.Order>;
 }
 
 export default Kai;
