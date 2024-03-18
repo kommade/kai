@@ -8,9 +8,8 @@ import Kai from "@/lib/types"
 import { useRouter } from "next/navigation";
 
 import React from 'react'
-import { Button } from "@/components/ui/button";
 
-const DashboardPage = ({ auth, data }: { auth: Kai.UserResult, data: Kai.Orders }) => {
+const OrdersPage = ({ auth, data }: { auth: Kai.UserResult, data: Kai.Orders }) => {
     const { toast } = useToast();
     const router = useRouter();
 
@@ -26,11 +25,8 @@ const DashboardPage = ({ auth, data }: { auth: Kai.UserResult, data: Kai.Orders 
                 <HeaderComponent/>
                 <section className="mt-[80px] min-h-[calc(100vh_-_140px)] w-full h-fit flex flex-col justify-start items-center py-6">
                     <div className="w-[90%] justify-between flex flex-col gap-4">
-                        <h2 className="text-center w-fit text-[24px]">DASHBOARD</h2>
-                        <div className="flex gap-2 items-center">
-                            <h3>There are {Object.values(data).filter((order) => order.order_status === "pending").length} pending order(s).</h3>
-                            <Button className="w-[100px]" variant={"link"} onClick={() => router.push("/dashboard/orders")}>View Orders</Button>
-                        </div>
+                        <h2 className="text-center w-fit text-[24px]">ORDERS</h2>
+                        <OrdersComponent data={data}/>
                     </div>
                 </section>
                 <FooterComponent />
@@ -39,4 +35,4 @@ const DashboardPage = ({ auth, data }: { auth: Kai.UserResult, data: Kai.Orders 
     )
 }
 
-export default DashboardPage
+export default OrdersPage

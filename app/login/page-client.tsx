@@ -9,24 +9,18 @@ import { loginFormSchema } from "@/lib/zod";
 import { useForm } from "react-hook-form"
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod"
-import { login } from "@/functions/database";
-import { useEffect, useState } from "react";
+import { login } from "@/functions/auth";
+import { useState } from "react";
 import Kai from "@/lib/types";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/components/ui/use-toast";
 
 
 const LoginPage = ({ session }: { session?: string }) => {  
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const redirect = searchParams.get("redirect") ?? "/";
     const { toast } = useToast();
-    console.log(session);
-    if (session) {
-        if (z.string().email().safeParse(session)) {
-            router.push("/");
-            return
-        }
-    }
-
     const [response, setResponse] = useState<string>("");
     const form = useForm<z.infer<typeof loginFormSchema>>({
         resolver: zodResolver(loginFormSchema),
@@ -35,6 +29,15 @@ const LoginPage = ({ session }: { session?: string }) => {
             password: ""
         }
     });
+    
+    if (session) {
+        if (z.string().email().safeParse(session).success) {
+            router.push(redirect)
+            toast({ description: "You are already logged in!", duration: 1000 });
+            return;
+        }
+    }
+
     async function onSubmit(data: z.infer<typeof loginFormSchema>) {  
         const res = await login(data.email, data.password);
         if (res.success) {
@@ -43,12 +46,13 @@ const LoginPage = ({ session }: { session?: string }) => {
             if (user.role === "admin") {
                 router.push("/dashboard");
             } else {
-                router.push("/");
+                router.push(redirect)
             }
         } else {
             setResponse("Email or password is incorrect");
         }
     }
+
     return (
         <main className="flex flex-col items-center justify-between min-h-screen">
             <div className="w-full h-fit min-h-[100vh] min-w-[1024px] relative flex flex-col">
@@ -58,7 +62,7 @@ const LoginPage = ({ session }: { session?: string }) => {
                         <h2 className="text-center w-fit text-[24px]">LOGIN</h2>
                         <div className="flex flex-col items-center justify-center">
                             <Form {...form}>
-                                <form onSubmit={form.handleSubmit(onSubmit)} className="w-[300px] flex flex-col gap-4">
+                                <form onSubmit={form.handleSubmit(onSubmit)} className="w-[300px] max-h-[290px] flex flex-col gap-4" onKeyDown={() => setResponse('')}>
                                     <FormField
                                         control={form.control}
                                         name="email"
@@ -66,8 +70,9 @@ const LoginPage = ({ session }: { session?: string }) => {
                                             <FormItem>
                                                 <FormLabel>Email</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="Email" {...field} />
+                                                    <Input placeholder="Email" autoComplete="username" {...field} />
                                                 </FormControl>
+                                                <FormMessage/>
                                             </FormItem>
                                         )}
                                     />
@@ -78,13 +83,14 @@ const LoginPage = ({ session }: { session?: string }) => {
                                             <FormItem>
                                                 <FormLabel>Password</FormLabel>
                                                 <FormControl>
-                                                    <Input type="password" placeholder="Password" {...field} />
+                                                    <Input type="password" placeholder="Password" autoComplete="current-password" {...field} />
                                                 </FormControl>
-                                                <FormMessage>{response}</FormMessage>
+                                                <FormMessage/>
                                             </FormItem>
                                         )}
-                                    />
+                                        />
                                     <Button className="mt-4" type="submit">Login</Button>
+                                    <FormMessage>{response}</FormMessage>
                                 </form>
                             </Form>
                             <div className="flex gap-4 w-[300px] justify-between">

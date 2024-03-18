@@ -8,7 +8,6 @@ import Kai from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { changeProductNumberInCart } from "@/functions/database";
-import { getSessionIdAndCreateIfMissing } from "@/functions/sessions";
 
 const ProductSpecificPage = ({ product }: { product: Kai.ProductData }) => {
     const { name, desc, images, collection, price, options } = product;
@@ -17,15 +16,6 @@ const ProductSpecificPage = ({ product }: { product: Kai.ProductData }) => {
     const [selectedOptions, setSelectedOptions] = useState<Kai.SelectedProductOptions>(Object.fromEntries(Object.entries(options).map(([option, values]) => [option, values[0]])));
     const [activeTab, setActiveTab] = useState('description');
     const [transition, setTransition] = useState(false);
-    const [sessionId, setSessionId] = useState<string>("");
-
-    useEffect(() => {
-        const fetchSessionId = async () => {
-            const sessionId = await getSessionIdAndCreateIfMissing();
-            setSessionId(sessionId);
-        };
-        fetchSessionId();
-    }, []);
 
     const handleTabChange = (tab: string) => {
         setActiveTab(tab);
@@ -63,8 +53,7 @@ const ProductSpecificPage = ({ product }: { product: Kai.ProductData }) => {
             count: quantity,
             total: parseInt(price) * quantity
         };
-        console.log(productInCart)
-        changeProductNumberInCart(sessionId, productInCart, quantity);
+        changeProductNumberInCart(productInCart, quantity);
     };
 
     return (

@@ -6,8 +6,8 @@ import MessageComponent from "@/components/MessageComponent"
 import { Button } from "@/components/ui/button"
 import { ToastAction } from "@/components/ui/toast";
 import { useToast } from "@/components/ui/use-toast";
-import { convertCartToOrder, getOrder, preventCartTimeout } from "@/functions/database"
-import { clearSessionId, getSessionId } from "@/functions/sessions"
+import { convertCartToOrder, getCart, getOrders, preventCartTimeout } from "@/functions/database"
+import { resetSessionId, getSessionId } from "@/functions/sessions"
 import Kai from "@/lib/types"
 import Link from "next/link";
 import { useRouter } from "next/navigation"
@@ -16,23 +16,35 @@ import React, { useEffect } from 'react'
 const ReturnPage = ({ session }: { session?: Kai.CheckoutSession }) => {
     const router = useRouter();
     const { toast } = useToast();
-    const [orderId, setOrderId] = React.useState<number | undefined>(undefined);
+    const [orderId, setOrderId] = React.useState<string | undefined>(undefined);
+
+    useEffect(() => {
+        const fetchCart = async () => {
+            const cart = await getCart();
+            if (cart?.items.length === 0) {
+                router.push('/');
+                return
+            }
+        }
+        fetchCart();
+    }, []);
 
     useEffect(() => {
         const handleComplete = async (session?: Kai.CheckoutSession) => {
             if (!session || orderId) {
-                return;
+                router.push('/');
+                return
             }
-            if (session.status === "paid") {
+            if (session.payment_status === "paid") {
                 const session_id = await getSessionId();
                 if (session_id) {
-                    const res = await convertCartToOrder(session_id, session);
+                    const res = await convertCartToOrder(session);
                     setOrderId(res.orderId);
                     if (res.success) {
-                        clearSessionId();
+                        resetSessionId();
                         return;
                     }
-                    await preventCartTimeout(session_id);
+                    await preventCartTimeout();
                 }
                 const emailLink = `mailto:kaistudios46@gmail.com?subject=Order paid for but not saved?body=I recently ordered from your website. Order ID: ${session_id ?? "Not saved"} Please help me with this issue. Thank you.`
                 toast({
@@ -52,7 +64,7 @@ const ReturnPage = ({ session }: { session?: Kai.CheckoutSession }) => {
         )
     }
 
-    if (session.status === "paid") {
+    if (session.payment_status === "paid") {
         return (
             <main className="flex flex-col items-center justify-between min-h-screen">
                 <div className="w-full h-fit min-h-[100vh] min-w-[1024px] relative flex flex-col">

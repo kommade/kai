@@ -1,13 +1,16 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { createCart, deleteCart, getCart } from "./database";
+import { changeCartId, createCart, deleteCart, getCart } from "./database";
 
 type SessionId = string;
 
 export async function getSessionId() {
-    const cookieStore = cookies();
-    return cookieStore.get("session-id")?.value;
+    const session = cookies().get("session-id")?.value;
+    if (session === undefined) {
+        throw new Error("Session ID not found");
+    }
+    return decodeURI(session);
 }
 
 export async function setSessionId(sessionId: SessionId) {
@@ -15,15 +18,10 @@ export async function setSessionId(sessionId: SessionId) {
     cookieStore.set("session-id", sessionId);
 }
 
-export async function getSessionIdAndCreateIfMissing() {
-    const sessionId = await getSessionId();
-    if (!sessionId) {
-        const newSessionId = crypto.randomUUID();
-        setSessionId(newSessionId);
-        createCart(newSessionId);
-        return newSessionId;
-    }
-    return sessionId;
+export async function createSessionIdEdge() {
+    const newSessionId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);;
+    await createCart(newSessionId);
+    return newSessionId;
 }
 
 export async function sessionIsActive() {
@@ -31,8 +29,7 @@ export async function sessionIsActive() {
 }
 
 export async function sessionIsExpired() {
-    const cookieStore = cookies();
-    const sessionId = cookieStore.get("session-id")?.value;
+    const sessionId = await getSessionId();
     if (sessionId) {
         return await getCart(sessionId) === null;
     } else {
@@ -40,11 +37,22 @@ export async function sessionIsExpired() {
     }
 }
 
-export async function clearSessionId() {
+export async function resetSessionId() {
     const cookieStore = cookies();
     const sessionId = cookieStore.get("session-id")?.value;
-    cookieStore.delete("session-id");
     if (sessionId) {
         await deleteCart(sessionId);
     }
+    cookieStore.delete("session-id");
+    await setSessionId(await createSessionIdEdge());
+}
+
+export async function changeSessionId(newSessionId: SessionId) {
+    const oldSessionId = await getSessionId();
+    if (oldSessionId) {
+        await changeCartId(oldSessionId, newSessionId);
+    } else { // actually this should never happen
+        await createCart(newSessionId);
+    }
+    setSessionId(newSessionId);
 }

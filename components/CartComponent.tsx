@@ -1,12 +1,13 @@
+"use client";
+
 import { getCart, deleteProductFromCart, changeProductNumberInCart } from "@/functions/database";
-import { getSessionIdAndCreateIfMissing, getSessionId } from "@/functions/sessions";
 import Kai from "@/lib/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { Minus, Plus, XIcon } from "lucide-react";
 import React, { useEffect } from 'react'
 import { Button } from "./ui/button";
 import Image from "next/image";
-import { CartTable } from "./DataTable";
+import { DataTable } from "./DataTable";
 import { useRouter } from "next/navigation";
 
 const CartComponent = ({ data }: { data: Kai.Cart | undefined }) => {
@@ -17,23 +18,21 @@ const CartComponent = ({ data }: { data: Kai.Cart | undefined }) => {
             return;
         }
         const fetchCart = async () => {
-            const session = await getSessionIdAndCreateIfMissing();
-            setCart(await getCart(session!)|| { items: [], total: 0 })
+            setCart(await getCart() || { items: [], total: 0 })
         }
         fetchCart();
     }, [data])
 
     const updateProductCount = React.useCallback(async (product: Kai.ProductInCart, count?: number) => {
-        const session = await getSessionId();
         if (count === undefined) {
-            await deleteProductFromCart(session!, product);
+            await deleteProductFromCart(product);
             setCart((prev) => ({
                 total: prev.total - product.total,
                 items: prev.items.filter((inCart) => inCart.stringified !== product.stringified)
             }));
             return;
         }
-        await changeProductNumberInCart(session!, product, count);
+        await changeProductNumberInCart(product, count);
         setCart((prev) => {
             const newItems = prev.items.map((inCart) => {
                 if (inCart.stringified === product.stringified) {
@@ -136,7 +135,7 @@ const CartComponent = ({ data }: { data: Kai.Cart | undefined }) => {
     
     return (
         <>
-            <CartTable columns={columns} data={cart.items} />
+            <DataTable columns={columns} data={cart.items} emptyMessage="No items in cart."/>
             <div className="flex flex-col items-end justify-between w-full gap-2 my-8">
                 <Button
                     disabled={cart.items.length === 0}

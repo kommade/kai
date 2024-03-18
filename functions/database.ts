@@ -2,9 +2,8 @@
 
 import Kai from "@/lib/types";
 import { Redis } from '@upstash/redis'
-import { unstable_cache as cache } from "next/cache";
-import bcrypt from 'bcrypt';
-import { setSessionId } from "./sessions";
+import { unstable_cache as cache, revalidatePath } from "next/cache";
+import { getSessionId } from "./sessions";
 
 
 const redis = Redis.fromEnv();
@@ -84,7 +83,6 @@ export const searchProducts = cache(async (input: string) => {
 
 export const getProductKeyFromId = cache(async (id: string) => {
     const key = await redis.hget("idMap", id);
-    console.log(key);
     return key as string;
 }, undefined, { revalidate: revalidate })
 
@@ -112,7 +110,14 @@ export const createCart = async (cartId: string, user = false) => {
     }
 }
 
-export const getCart = cache(async (cartId: string) => {
+export const changeCartId = async (oldId: string, newId: string) => {
+    await redis.rename(`cart:${oldId}`, `cart:${newId}`);
+}
+
+export const getCart = cache(async (cartId?: string) => {
+    if (!cartId) {
+        cartId = await getSessionId() as string;
+    }
     const cart = (await redis.hgetall(`cart:${cartId}`)) as Record<string, string>;
     if (cart === null) {
         return null;
@@ -131,7 +136,8 @@ export const getCart = cache(async (cartId: string) => {
     } as Kai.Cart;
 }, undefined, { revalidate: revalidate }) //0.5
 
-export const changeProductNumberInCart = async (cartId: string, productInCart: Kai.ProductInCart, amount: number, user = false) => {
+export const changeProductNumberInCart = async (productInCart: Kai.ProductInCart, amount: number, user = false) => {
+    const cartId = await getSessionId() as string;
     if (amount === -1 && await redis.hget(`cart:${cartId}`, productInCart.stringified) === 1) {
         return { success: false, message: "Cannot reduce count below 1, use deleteProductFromCart" };
     }
@@ -142,7 +148,8 @@ export const changeProductNumberInCart = async (cartId: string, productInCart: K
     await setCartTotal(cartId);
 }
 
-export const deleteProductFromCart = async (cartId: string, productInCart: Kai.ProductInCart, user = false) => {
+export const deleteProductFromCart = async (productInCart: Kai.ProductInCart, user = false) => {
+    const cartId = await getSessionId() as string;
     await redis.hdel(`cart:${cartId}`, productInCart.stringified);
     if (!user) {
         await redis.expire(`cart:${cartId}`, 3600, "GT");
@@ -163,8 +170,8 @@ export const setCartTotal = async (cartId: string, user = false) => {
     await redis.hset(`cart:${cartId}`, { "Total": total });
 }
 
-export const getCartTotal = async (cartId: string, user = false) => {
-    await setCartTotal(cartId);
+export const getCartTotal = async (user = false) => {
+    const cartId = await getSessionId() as string;
     const total = await redis.hget(`cart:${cartId}`, "Total");
     if (!user) {
         await redis.expire(`cart:${cartId}`, 3600, "GT");
@@ -172,39 +179,59 @@ export const getCartTotal = async (cartId: string, user = false) => {
     return total as number;
 }
 
-export const convertCartToOrder = async (cartId: string, checkout: Kai.CheckoutSession) => {
-    const cart = await getCart(cartId);
-    if (cart === null) {
-        return { success: false, message: "Cart not found" };
-    }
-    const orderId = await redis.incr("orderCount");
-    await redis.hset(`order:${orderId}`, { ...cart, ...checkout });
-    await deleteCart(cartId);
-    return { success: true, orderId: orderId };
-}
-
-export const preventCartTimeout = async (cartId: string) => {
+export const preventCartTimeout = async () => {
+    const cartId = await getSessionId() as string;
     await redis.persist(`cart:${cartId}`);
 }
 
-export const getOrder = async (orderId: number) => {
-    const order = await redis.hgetall(`order:${orderId}`);
-    if (order === null) {
-        return { success: false, data: "Order not found" };
+export const convertCartToOrder = async (checkout: Kai.CheckoutSession) => {
+    const cartId = await getSessionId() as string;
+    const cart = await getCart(cartId);
+    if (cart === null) {
+        return { success: false, message: "Cart not found" };
+    } else if (cart.items.length === 0) {
+        return { success: false, message: "Cart is empty" };
     }
-    return { success: true, data: order };
+    const orderId = await redis.incr("orderCount");
+    const order = { ...cart, ...checkout, order_status: "pending" }
+    await redis.hset(`order:${orderId}`, order);
+    await deleteCart(cartId);
+    return { success: true, orderId: `order:${orderId}` };
 }
 
-export const login = async (email: string, password: string) => {
-    const user = await redis.hget("users", email) as Kai.User | null;
-    if (user === null) {
-        return { success: false, data: "User not found" };
+export const getOrders = async () => {
+    const orderIds = await redis.scan(0, { match: "order:*" });
+    const orders: Kai.Order[] = await Promise.all(orderIds[1].map(async (orderId) => {
+        return { ...await redis.hgetall(orderId) } as Kai.Order;
+    }));
+    return Object.fromEntries(orders.map((order, index) => [orderIds[1][index], order])) as Kai.Orders;
+}
+
+export const cancelOrder = async (orderId: string) => {
+    try {
+        await redis.hset(orderId, { order_status: "cancelled" });
+        await redis.expire(orderId, 24 * 3600, "GT");
+        return { success: true, message: "Order cancelled" };
+    } catch (error) {
+        return { success: false, message: "Order not found" };
     }
-    if (bcrypt.compareSync(password, user.hash)) {
-        await redis.hset("users", { [email]: JSON.stringify({ ...user, last: new Date().toISOString() }) });
-        await setSessionId(email);
-        return { success: true, data: user };
-    } else {
-        return { success: false, data: "Incorrect password" };
+}
+
+export const changeOrderStatus = async (orderId: string, status: Kai.Order["order_status"]) => {
+    try {
+        await redis.hset(orderId, { order_status: status });
+        return { success: true, message: "Order status changed" };
+    } catch (error) {
+        return { success: false, message: "Order not found" };
+    }
+}
+
+export const setShippingDetails = async (orderId: string, details: { shipping_provider: string, tracking_number: string }) => {
+    try {
+        await redis.hset(orderId, details);
+        await changeOrderStatus(orderId, "shipped");
+        return { success: true, message: "Shipping details set" };
+    } catch (error) {
+        return { success: false, message: "Order not found" };
     }
 }
