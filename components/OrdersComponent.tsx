@@ -2,28 +2,27 @@
 
 import Kai, { Expand } from "@/lib/types";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, Check, Cross, Minus, MoreHorizontal, PackageCheck, PackageIcon, PackageOpen, PackageSearch, PackageX, Plus, XIcon } from "lucide-react";
+import { ArrowUpDown, Check, MoreHorizontal, PackageCheck, PackageIcon, PackageSearch, PackageX, XIcon } from "lucide-react";
 import React from 'react'
 import { Button } from "./ui/button";
-import Image from "next/image";
 import { DataTable } from "./DataTable";
 import { useRouter } from "next/navigation";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuPortal, DropdownMenuSubContent } from "./ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuPortal, DropdownMenuSubContent } from "./ui/dropdown-menu";
 import Stripe from "stripe";
 import { AlertDialogComponent } from "./AlertDialogComponent";
 import { cancelOrder, changeOrderStatus, getOrders, setShippingDetails } from "@/functions/database";
 import { useToast } from "./ui/use-toast";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { InputShippingDetailsComponent } from "./InputShippingDetailsComponent";
 import { z } from "zod";
 import { shippingFormSchema } from "@/lib/zod";
-import { revalidatePath } from "next/cache";
 
 const OrdersComponent = ({ data }: { data: Kai.Orders | undefined }) => {
     const {toast} = useToast();
     const router = useRouter();
     const [orders, setOrders] = React.useState<Kai.Orders>(data || {});
-
+    const [cancelOrderDialogOpen, setCancelOrderDialogOpen] = React.useState(false);
+    const [shippingDialogOpen, setShippingDialogOpen] = React.useState(false);
+    
     const statusMap = {
         "pending": <span className="flex gap-2 w-full  justify-between rounded-md p-1 px-2 bg-kai-yellow/30"><h3 className="h-[16.67px] text-kai-yellow ">Pending</h3> <PackageSearch className="stroke-kai-yellow mx-1" width={16.67} height={16.67}/></span>,
         "shipped": <span className="flex gap-2 w-full  justify-between rounded-md p-1 px-2  bg-kai-blue/30"><h3 className="h-[16.67px] text-kai-blue">Shipped</h3> <PackageIcon className="stroke-kai-blue mx-1" width={16.67} height={16.67}/></span>,
@@ -152,8 +151,6 @@ const OrdersComponent = ({ data }: { data: Kai.Orders | undefined }) => {
                 const order_id = row.getValue("orderId") as string;
                 const order_status = row.getValue("order_status") as string;
                 const payment_id = row.original.payment_id;
-                const [cancelOrderDialogOpen, setCancelOrderDialogOpen] = React.useState(false);
-                const [shippingDialogOpen, setShippingDialogOpen] = React.useState(false);
                 return (
                     <>
                         <DropdownMenu>
