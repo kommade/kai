@@ -15,6 +15,7 @@ import { useToast } from "./ui/use-toast";
 import { InputShippingDetailsComponent } from "./InputShippingDetailsComponent";
 import { z } from "zod";
 import { shippingFormSchema } from "@/lib/zod";
+import { ChangeOrderStatusComponent, ChangeOrderStatusDialogs, OrderStatusMap, PaymentStatusMap } from "./StatusMaps";
 
 const OrdersComponent = ({ data }: { data: Kai.Orders | undefined }) => {
     const {toast} = useToast();
@@ -23,43 +24,7 @@ const OrdersComponent = ({ data }: { data: Kai.Orders | undefined }) => {
     const [cancelOrderDialogOpen, setCancelOrderDialogOpen] = React.useState(false);
     const [shippingDialogOpen, setShippingDialogOpen] = React.useState(false);
     
-    const statusMap = {
-        "pending": <span className="flex gap-2 w-full  justify-between rounded-md p-1 px-2 bg-kai-yellow/30"><h3 className="h-[16.67px] text-kai-yellow ">Pending</h3> <PackageSearch className="stroke-kai-yellow mx-1" width={16.67} height={16.67}/></span>,
-        "shipped": <span className="flex gap-2 w-full  justify-between rounded-md p-1 px-2  bg-kai-blue/30"><h3 className="h-[16.67px] text-kai-blue">Shipped</h3> <PackageIcon className="stroke-kai-blue mx-1" width={16.67} height={16.67}/></span>,
-        "delivered": <span className="flex gap-2 w-full  justify-between rounded-md p-1 px-2  bg-kai-green/30"><h3 className="h-[16.67px] text-kai-green ">Delivered</h3> <PackageCheck className="stroke-kai-green mx-1" width={16.67} height={16.67}/></span>        ,
-        "cancelled": <span className="flex gap-2 w-full  justify-between rounded-md p-1 px-2  bg-kai-red/30"><h3 className="h-[16.67px] text-kai-red ">Cancelled</h3> <PackageX className="stroke-kai-red mx-1" width={16.67} height={16.67}/></span>
-
-    }
-
-    const handleCancelOrder = async (id: string) => {
-        const res = await cancelOrder(id);
-        if (res.success) {
-            toast({ description: "Order cancelled successfully", duration: 2000, variant: "success" })
-            setOrders(await getOrders());
-        } else {
-            toast({ description: "Failed to cancel order", duration: 2000, variant: "destructive" })
-        }
-    }
-
-    const changeStatus = async (id: string, status: Kai.Order['order_status']) => {
-        const res = await changeOrderStatus(id, status);
-        if (res.success) {
-            toast({ description: "Order status updated", duration: 1000, variant: "success" })
-            setOrders(await getOrders());
-        } else {
-            toast({ description: "Error updating order status", duration: 1000, variant: "destructive" })
-        }
-    }
-
-    const handleSetShippingDetails = async (data: z.infer<typeof shippingFormSchema>, order_id: string) => {
-        const res = await setShippingDetails(order_id, data);
-        if (res.success) {
-            toast({ description: "Shipping details added", duration: 1000, variant: "success" });
-            setOrders(await getOrders());
-        } else {
-            toast({ description: "Error adding shipping details", duration: 1000, variant: "destructive"});
-        }
-    }
+    
 
     const columns: ColumnDef<Expand<Kai.Order & { orderId: string }>>[] = [
         {
@@ -109,16 +74,7 @@ const OrdersComponent = ({ data }: { data: Kai.Orders | undefined }) => {
             header: "Payment status",
             cell: ({ row }) => {
                 const status = row.getValue("payment_status") as string;
-                if (status === "paid") {
-                    return (
-                        <span className="flex gap-2 w-fit rounded-md p-1 px-2 bg-kai-green/30"><h3 className="h-[16.67px] text-kai-green">Paid</h3> <Check className="stroke-kai-green" width={16.67} height={16.67}/></span>
-                    )
-                } else {
-                    return (
-                        <span className="flex gap-2 w-fit rounded-md p-1 px-2 bg-kai-red/30"><h3 className="h-[16.67px] text-kai-red">Unpaid</h3> <XIcon className="stroke-kai-red" width={16.67} height={16.67}/></span>
-                    )
-                
-                }
+                return <PaymentStatusMap status={status} />
             }
         },
         {
@@ -139,7 +95,7 @@ const OrdersComponent = ({ data }: { data: Kai.Orders | undefined }) => {
                 const status = row.getValue("order_status") as Kai.Order['order_status'];
                 return (
                     <div className="w-[110px]">
-                        {statusMap[status]}
+                        <OrderStatusMap status={status}/>
                     </div>
                 );
             }
@@ -161,32 +117,20 @@ const OrdersComponent = ({ data }: { data: Kai.Orders | undefined }) => {
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="bg-kai-white">
-                                <DropdownMenuItem>View order</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => router.push(`/dashboard/orders/${order_id.split('order:')[1]}`)}>View order</DropdownMenuItem>
                                 <DropdownMenuSub>
                                     <DropdownMenuSubTrigger>
                                         <span>Update order status</span>
                                     </DropdownMenuSubTrigger>
                                     <DropdownMenuPortal>
                                         <DropdownMenuSubContent className="bg-kai-white">
-                                            {
-                                                order_status === "cancelled" ? <span className="flex gap-2 w-full justify-between rounded-md p-1 px-2 bg-kai-red/30"><h3 className="h-[16.67px] text-kai-red ">Action not allowed</h3> <XIcon className="stroke-kai-red mx-1" width={16.67} height={16.67}/></span> :
-                                                Object.entries(statusMap).map(([status, display]) => {
-                                                    if (status === order_status) return <React.Fragment key={status}></React.Fragment>;
-                                                    let newDisplay: React.ReactElement;
-                                                    if (status === "cancelled") {
-                                                        newDisplay = Object.assign({}, display, { props: { ...display.props, onClick: () => setCancelOrderDialogOpen(true) } });
-                                                    } else if (status === "shipped") {
-                                                        newDisplay = Object.assign({}, display, { props: { ...display.props, onClick: () => setShippingDialogOpen(true) } });
-                                                    } else {
-                                                        newDisplay = Object.assign({}, display, { props: { ...display.props, onClick: () => changeStatus(order_id, status as "pending" | "shipped" | "delivered" | "cancelled")} });
-                                                    }
-                                                    return (
-                                                        <DropdownMenuItem key={status}>
-                                                            {newDisplay}
-                                                        </DropdownMenuItem>
-                                                    )
-                                                })
-                                            }
+                                            <ChangeOrderStatusComponent
+                                                data={row.original}
+                                                revalidate={async () => setOrders(await getOrders())}
+                                                order_id={order_id}
+                                                setCancelOrderDialogOpen={setCancelOrderDialogOpen}
+                                                setShippingDialogOpen={setShippingDialogOpen}
+                                            />
                                         </DropdownMenuSubContent>
                                     </DropdownMenuPortal>
                                 </DropdownMenuSub>
@@ -209,22 +153,14 @@ const OrdersComponent = ({ data }: { data: Kai.Orders | undefined }) => {
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
-                        <AlertDialogComponent
-                            headerText="Are you sure?"
-                            descriptionText="This will cancel the order and send an email informing the customer of the cancellation (WIP). This cannot be undone."
-                            close={() => setCancelOrderDialogOpen(false)}
-                            action={async () => {
-                                setCancelOrderDialogOpen(false)
-                                await handleCancelOrder(order_id)
-                            }}
-                            open={cancelOrderDialogOpen}
-                        />
-                        <InputShippingDetailsComponent
-                            open={shippingDialogOpen}
-                            action={async (shippingDetails) => {
-                                setShippingDialogOpen(false);
-                                await handleSetShippingDetails(shippingDetails, order_id);
-                            }}
+                        <ChangeOrderStatusDialogs
+                            cancelOrderDialogOpen={cancelOrderDialogOpen}
+                            setCancelOrderDialogOpen={setCancelOrderDialogOpen}
+                            shippingDialogOpen={shippingDialogOpen}
+                            setShippingDialogOpen={setShippingDialogOpen}
+                            order_id={order_id}
+                            payment_id={payment_id}
+                            revalidate={async () => setOrders(await getOrders())}
                         />
                     </>
                 )

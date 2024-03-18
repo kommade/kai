@@ -106,7 +106,8 @@ export const getHomeProductImages = cache(async () => {
 export const createCart = async (cartId: string, user = false) => {
     await redis.hset(`cart:${cartId}`, { "Total": 0 });
     if (!user) {
-        await redis.expire(`cart:${cartId}`, 3600, "GT");
+        console.log("setting expiry")
+        await redis.expire(`cart:${cartId}`, 3600);
     }
 }
 
@@ -184,7 +185,12 @@ export const preventCartTimeout = async () => {
     await redis.persist(`cart:${cartId}`);
 }
 
+let locked = false;
 export const convertCartToOrder = async (checkout: Kai.CheckoutSession) => {
+    if (locked) {
+        return { success: false, message: "Order already being processed" };
+    }
+    locked = true
     const cartId = await getSessionId() as string;
     const cart = await getCart(cartId);
     if (cart === null) {
@@ -196,7 +202,13 @@ export const convertCartToOrder = async (checkout: Kai.CheckoutSession) => {
     const order = { ...cart, ...checkout, order_status: "pending" }
     await redis.hset(`order:${orderId}`, order);
     await deleteCart(cartId);
+    locked = false;
     return { success: true, orderId: `order:${orderId}` };
+}
+
+export const getOrder = async (orderId: string) => {
+    const order: Kai.Order | null = await redis.hgetall(orderId);
+    return order as Kai.Order;
 }
 
 export const getOrders = async () => {
@@ -207,10 +219,10 @@ export const getOrders = async () => {
     return Object.fromEntries(orders.map((order, index) => [orderIds[1][index], order])) as Kai.Orders;
 }
 
-export const cancelOrder = async (orderId: string) => {
+export const cancelOrder = async (orderId: string, refundId: string, refundStatus: string) => {
     try {
-        await redis.hset(orderId, { order_status: "cancelled" });
-        await redis.expire(orderId, 24 * 3600, "GT");
+        await redis.hset(orderId, { order_status: "cancelled", refund_id: refundId, refund_status: refundStatus});
+        await redis.expire(orderId, 24 * 3600);
         return { success: true, message: "Order cancelled" };
     } catch (error) {
         return { success: false, message: "Order not found" };
@@ -235,3 +247,4 @@ export const setShippingDetails = async (orderId: string, details: { shipping_pr
         return { success: false, message: "Order not found" };
     }
 }
+

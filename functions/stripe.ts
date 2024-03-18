@@ -30,6 +30,9 @@ export const createCheckoutSession = async (cart: Kai.Cart, user?: Kai.User) => 
                 }
             ],
             customer_email: user?.email,
+            invoice_creation: {
+                enabled: true,
+            },
         });
         return checkoutSession.client_secret ?? "";
     } catch (error) {
@@ -48,11 +51,40 @@ export const getCheckoutSession = async (sessionId: string) => {
             customer_email: session.customer_details?.email,
             payment_id: session.payment_intent,
             amount_total: session.amount_total,
+            invoice_id: session.invoice as string,
         } as Kai.CheckoutSession;
     } catch (error) {
         console.error(error);
         return {
             payment_status: "error",
         } as Kai.CheckoutSession;
+    }
+}
+
+export const refundPayment = async (paymentId: string) => {
+    try {
+        const refund = await stripe.refunds.create({
+            payment_intent: paymentId,
+        });
+        return {
+            status: refund.status as "pending" | "requires_action" | "succeeded" | "failed" | "cancelled",
+            id: refund.id,
+        }
+    } catch (error) {
+        console.error(error);
+        return "error";
+    }
+}
+
+export const getRefundStatus = async (refundId?: string) => {
+    if (!refundId) {
+        return "error";
+    }
+    try {
+        const refund = await stripe.refunds.retrieve(refundId);
+        return refund.status as "pending" | "requires_action" | "succeeded" | "failed" | "cancelled"
+    } catch (error) {
+        console.error(error);
+        return "error";
     }
 }

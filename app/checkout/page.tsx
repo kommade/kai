@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react'
 import CheckoutPage from "./page-client"
 import { getSessionId, sessionIsActive, sessionIsExpired } from "@/functions/sessions"
-import { getCart, getCartTotal } from "@/functions/database";
+import { getCart, getCartTotal, setCartTotal } from "@/functions/database";
 import Kai from "@/lib/types";
 import { createCheckoutSession } from "@/functions/stripe";
 import MessageComponent from "@/components/MessageComponent";
@@ -17,6 +17,7 @@ const CheckoutPageWrapper = async () => {
     if (sessionActive && !sessionExpired) {
         session_id = await getSessionId();
         cart = await getCart() as Kai.Cart;
+        await setCartTotal(session_id, auth.loggedIn);
         total = await getCartTotal();
     }
     let checkoutSession = "";

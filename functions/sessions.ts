@@ -47,12 +47,12 @@ export async function resetSessionId() {
     await setSessionId(await createSessionIdEdge());
 }
 
-export async function changeSessionId(newSessionId: SessionId) {
+export async function changeSessionId(newSessionId: SessionId, user = false) {
     const oldSessionId = await getSessionId();
     if (oldSessionId) {
         await changeCartId(oldSessionId, newSessionId);
     } else { // actually this should never happen
-        await createCart(newSessionId);
+        await createCart(newSessionId, user);
     }
     setSessionId(newSessionId);
 }

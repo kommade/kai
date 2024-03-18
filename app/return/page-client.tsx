@@ -6,6 +6,7 @@ import MessageComponent from "@/components/MessageComponent"
 import { Button } from "@/components/ui/button"
 import { ToastAction } from "@/components/ui/toast";
 import { useToast } from "@/components/ui/use-toast";
+import { ifLoggedInGetUser } from "@/functions/auth";
 import { convertCartToOrder, getCart, getOrders, preventCartTimeout } from "@/functions/database"
 import { resetSessionId, getSessionId } from "@/functions/sessions"
 import Kai from "@/lib/types"
@@ -41,7 +42,10 @@ const ReturnPage = ({ session }: { session?: Kai.CheckoutSession }) => {
                     const res = await convertCartToOrder(session);
                     setOrderId(res.orderId);
                     if (res.success) {
-                        resetSessionId();
+                        const auth = await ifLoggedInGetUser();
+                        if (!auth.loggedIn) {
+                            resetSessionId();
+                        }
                         return;
                     }
                     await preventCartTimeout();

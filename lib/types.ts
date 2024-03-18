@@ -71,7 +71,8 @@ namespace Kai {
         customer_name: string
         customer_email: string
         payment_id: string,
-        amount_total: number
+        amount_total: number,
+        invoice_id: string,
     }
 
     export type UserResult =
@@ -79,9 +80,10 @@ namespace Kai {
         | { loggedIn: true; user: Kai.User };
     
     export type Order = ExpandRecursively<CheckoutSession> & Omit<Cart, 'total'> & {
-        order_status: "pending" | "shipped" | "delivered" | "cancelled";
+        order_status: "pending" | "shipped" | "delivered" | "cancelled" | "refunded";
         shipping_provider?: string;
         tracking_number?: string;
+        refund_id?: string;
     };
 
     export type Orders = Record<string, Kai.Order>;

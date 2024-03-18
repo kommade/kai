@@ -17,7 +17,7 @@ export const login = async (email: string, password: string) => {
     }
     if (bcrypt.compareSync(password, user.hash)) {
         await redis.hset("users", { [email]: JSON.stringify({ ...user, last: new Date().toISOString() }) });
-        await changeSessionId(email);
+        await changeSessionId(email, true);
         return { success: true, data: user };
     } else {
         return { success: false, data: "Incorrect password" };
