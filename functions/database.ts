@@ -105,7 +105,7 @@ export const getHomeProductImages = cache(async () => {
 export const createCart = async (cartId: string, user = false) => {
     await redis.hset(`cart:${cartId}`, { "Total": 0, converted: false });
     if (!user) {
-        await redis.expire(`cart:${cartId}`, process.env.NODE_ENV === "production" ? 3600 : 60);
+        await redis.expire(`cart:${cartId}`, process.env.NODE_ENV !== "test" ? 3600 : 10);
     }
 }
 
@@ -146,7 +146,7 @@ export const changeProductNumberInCart = async (productInCart: Kai.ProductInCart
     }
     await redis.hincrby(`cart:${cartId}`, productInCart.stringified, amount);
     if (!user) {
-        await redis.expire(`cart:${cartId}`, process.env.NODE_ENV === "production" ? 3600 : 60, "GT");
+        await redis.expire(`cart:${cartId}`, process.env.NODE_ENV !== "test" ? 3600 : 10, "GT");
     }
     await setCartTotal(cartId);
 }
@@ -155,7 +155,7 @@ export const deleteProductFromCart = async (productInCart: Kai.ProductInCart, us
     const cartId = await getSessionId() as string;
     await redis.hdel(`cart:${cartId}`, productInCart.stringified);
     if (!user) {
-        await redis.expire(`cart:${cartId}`, process.env.NODE_ENV === "production" ? 3600 : 60, "GT");
+        await redis.expire(`cart:${cartId}`, process.env.NODE_ENV !== "test" ? 3600 : 10, "GT");
     }
     await setCartTotal(cartId);
 }
@@ -168,7 +168,7 @@ export const setCartTotal = async (cartId: string, user = false) => {
     const cart = await getCart(cartId);
     const total = cart!.items.reduce((acc, curr) => acc + curr.total, 0);
     if (!user) {
-        await redis.expire(`cart:${cartId}`, process.env.NODE_ENV === "production" ? 3600 : 60, "GT");
+        await redis.expire(`cart:${cartId}`, process.env.NODE_ENV !== "test" ? 3600 : 10, "GT");
     }
     await redis.hset(`cart:${cartId}`, { "Total": total });
 }
@@ -177,7 +177,7 @@ export const getCartTotal = async (user = false) => {
     const cartId = await getSessionId() as string;
     const total = await redis.hget(`cart:${cartId}`, "Total");
     if (!user) {
-        await redis.expire(`cart:${cartId}`, process.env.NODE_ENV === "production" ? 3600 : 60, "GT");
+        await redis.expire(`cart:${cartId}`, process.env.NODE_ENV !== "test" ? 3600 : 10, "GT");
     }
     return total as number;
 }

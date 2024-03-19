@@ -2,6 +2,8 @@ import { test, expect } from '@playwright/test';
 import { config } from 'dotenv';
 config({ path: '.env.local' });
 
+// TODO: run on vercel's preview deployment
+
 test('product page', async ({ page }) => {
     await page.goto('http://localhost:3000/');
     await page.getByRole('button', { name: 'Our Products' }).click();
@@ -16,7 +18,7 @@ test('product page', async ({ page }) => {
     await expect(page.locator('section')).toContainText('2');   
 });
 
-test('purchase process', async ({ page }) => {
+test('purchase process', async ({ page, browserName }) => {
     await page.goto('http://localhost:3000/');
     await page.getByRole('button', { name: 'Our Products' }).click();
     await page.getByText('BUY NOWKai Shi (开始) Sunflower16.00').click();
@@ -30,6 +32,7 @@ test('purchase process', async ({ page }) => {
     await expect(page.getByRole('row', { name: 'Sunflower Kai Shi (开始) -' }).getByRole('button').nth(2)).toBeVisible();
     await page.getByRole('button', { name: 'Checkout' }).click();
     await page.waitForURL('http://localhost:3000/checkout');
+    test.skip(browserName === 'webkit', 'Stripe does not work with webkit')
     await page.waitForTimeout(2000)
     await page.frameLocator('iframe[name="embedded-checkout"]').getByRole('button', { name: 'Enter address manually' }).click();
     await page.frameLocator('iframe[name="embedded-checkout"]').getByLabel('Email').fill('playwright@test.com');

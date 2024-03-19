@@ -2,7 +2,6 @@ name: automerge
 on:
   workflow_run:
     workflows: ['Playwright Tests']
-    branches: [master]
     types:
       - completed
 jobs:
