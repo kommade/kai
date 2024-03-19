@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "next build && NODE_ENV=test next start"
+    "test": "next build && next start"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
