@@ -12,13 +12,13 @@ import { useRouter } from "next/navigation";
 
 const CartComponent = ({ data }: { data: Kai.Cart | undefined }) => {
     const router = useRouter();
-    const [cart, setCart] = React.useState<Kai.Cart>(data || { items: [], total: 0 });
+    const [cart, setCart] = React.useState<Kai.Cart>(data || { items: [], total: 0, converted: false });
     useEffect(() => {
         if (data) {
             return;
         }
         const fetchCart = async () => {
-            setCart(await getCart() || { items: [], total: 0 })
+            setCart(await getCart() || { items: [], total: 0, converted: false })
         }
         fetchCart();
     }, [data])
@@ -28,7 +28,8 @@ const CartComponent = ({ data }: { data: Kai.Cart | undefined }) => {
             await deleteProductFromCart(product);
             setCart((prev) => ({
                 total: prev.total - product.total,
-                items: prev.items.filter((inCart) => inCart.stringified !== product.stringified)
+                items: prev.items.filter((inCart) => inCart.stringified !== product.stringified),
+                converted: prev.converted
             }));
             return;
         }
@@ -46,7 +47,8 @@ const CartComponent = ({ data }: { data: Kai.Cart | undefined }) => {
             }).filter((inCart) => inCart.count > 0);
             return {
                 total: newItems.reduce((acc, curr) => acc + curr.total, 0),
-                items: newItems
+                items: newItems,
+                converted: prev.converted
             }
         
         })
