@@ -40,5 +40,8 @@ jobs:
       MERGE_LABELS: "automerge,!wip"
       MERGE_REMOVE_LABELS: "automerge"
     runs-on: ubuntu-latest
+    permissions: 
+      contents: write
+      pull-requests: write
     steps:
     - uses: "pascalgn/automerge-action@v0.16.2"
