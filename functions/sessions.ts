@@ -50,7 +50,7 @@ export async function resetSessionId() {
 export async function changeSessionId(newSessionId: SessionId, user = false) {
     const oldSessionId = await getSessionId();
     if (oldSessionId) {
-        await changeCartId(oldSessionId, newSessionId);
+        await changeCartId(oldSessionId, newSessionId, user);
     } else { // actually this should never happen
         await createCart(newSessionId, user);
     }

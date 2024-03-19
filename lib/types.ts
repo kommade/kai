@@ -56,6 +56,7 @@ namespace Kai {
     export type Cart = {
         items: ProductInCart[]
         total: number
+        converted: boolean
     };
 
     export type User = {

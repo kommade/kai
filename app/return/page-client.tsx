@@ -19,23 +19,11 @@ const ReturnPage = ({ session }: { session?: Kai.CheckoutSession }) => {
     const { toast } = useToast();
     const [orderId, setOrderId] = React.useState<string | undefined>(undefined);
 
-    useEffect(() => {
-        const fetchCart = async () => {
-            const cart = await getCart();
-            if (cart?.items.length === 0) {
-                router.push('/');
-                return
-            }
-        }
-        fetchCart();
-    }, []);
-
+    let locked = false;
     useEffect(() => {
         const handleComplete = async (session?: Kai.CheckoutSession) => {
-            if (!session || orderId) {
-                router.push('/');
-                return
-            }
+            if (locked || !session) return;
+            locked = true;
             if (session.payment_status === "paid") {
                 const session_id = await getSessionId();
                 if (session_id) {
