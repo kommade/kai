@@ -5,10 +5,8 @@ import { getCheckoutSession } from "@/functions/stripe"
 import Kai from "@/lib/types"
 
 const ReturnPageWrapper = async ({
-    params,
     searchParams,
 }: {
-    params: { params: string }
     searchParams: { [key: string]: string | string[] | undefined }
     }) => {
     const session_id = searchParams.session_id as string | undefined;
