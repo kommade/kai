@@ -153,4 +153,4 @@ const CartComponent = ({ data }: { data: Kai.Cart | undefined }) => {
     );
 }
 
-export default React.memo(CartComponent)
+export default CartComponent

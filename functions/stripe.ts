@@ -88,3 +88,31 @@ export const getRefundStatus = async (refundId?: string) => {
         return "error";
     }
 }
+
+export const getDisputes = async () => {
+    try {
+        const disputes = await stripe.disputes.list();
+        return disputes.data;
+    } catch (error) {
+        console.error(error);
+        return [];
+    }
+}
+
+export const getWeekMonthBalance = async () => {
+    try {
+        const balance = await stripe.balanceTransactions.list({
+            created: {
+                gte: Math.floor(Date.now() / 1000) - 30 * 24 * 60 * 60,
+            },
+        });
+        const week = balance.data
+            .filter((transaction) => transaction.created >= Math.floor(Date.now() / 1000) - 7 * 24 * 60 * 60)
+            .reduce((acc, transaction) => acc + transaction.net, 0);
+        const month = balance.data.reduce((acc, transaction) => acc + transaction.net, 0);
+        return { week, month }
+    } catch (error) {
+        console.error(error);
+        return { week: 0, month: 0 };
+    }
+}

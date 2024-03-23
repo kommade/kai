@@ -2,19 +2,15 @@
 
 import Kai, { Expand } from "@/lib/types";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, Check, MoreHorizontal, PackageCheck, PackageIcon, PackageSearch, PackageX, XIcon } from "lucide-react";
+import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import React from 'react'
 import { Button } from "./ui/button";
 import { DataTable } from "./DataTable";
 import { useRouter } from "next/navigation";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuPortal, DropdownMenuSubContent } from "./ui/dropdown-menu";
 import Stripe from "stripe";
-import { AlertDialogComponent } from "./AlertDialogComponent";
-import { cancelOrder, changeOrderStatus, getOrders, setShippingDetails } from "@/functions/database";
+import { getOrders } from "@/functions/database";
 import { useToast } from "./ui/use-toast";
-import { InputShippingDetailsComponent } from "./InputShippingDetailsComponent";
-import { z } from "zod";
-import { shippingFormSchema } from "@/lib/zod";
 import { ChangeOrderStatusComponent, ChangeOrderStatusDialogs, OrderStatusMap, PaymentStatusMap } from "./StatusMaps";
 
 const OrdersComponent = ({ data }: { data: Kai.Orders | undefined }) => {
@@ -105,7 +101,6 @@ const OrdersComponent = ({ data }: { data: Kai.Orders | undefined }) => {
             header: 'Actions',
             cell: ({ row }) => {
                 const order_id = row.getValue("orderId") as string;
-                const order_status = row.getValue("order_status") as string;
                 const payment_id = row.original.payment_id;
                 return (
                     <>

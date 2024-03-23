@@ -1,7 +1,7 @@
 import React from 'react'
 import OrderPage from "./page-client"
 import { changeOrderStatus, getOrder } from "@/functions/database";
-import MessageComponent from "@/components/MessageComponent";
+import LoadingComponent from "@/components/LoadingComponent";
 import { getRefundStatus } from "@/functions/stripe";
 
 const OrderPageWrapper = async ({ params }: { params: { id: string } }) => {

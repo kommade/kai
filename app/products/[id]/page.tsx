@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react'
 import { getProductKeyFromId, getProducts } from "@/functions/database"
 import ProductSpecificPage from './page-client';
-import MessageComponent from "@/components/MessageComponent";
+import LoadingComponent from "@/components/LoadingComponent";
 
 const ProductSpecificPageWrapper = async ({ params }: { params: { id: string } }) => {
     const productKey = await getProductKeyFromId(params.id);
@@ -12,7 +12,7 @@ const ProductSpecificPageWrapper = async ({ params }: { params: { id: string } }
     }
 
     return (
-        <Suspense fallback={<MessageComponent message="Loading..."/>}>
+        <Suspense fallback={<LoadingComponent/>}>
             <ProductSpecificPage product={product.data![0]} />
         </Suspense>
     );

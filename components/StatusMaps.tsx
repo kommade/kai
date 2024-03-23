@@ -103,7 +103,7 @@ export const ChangeOrderStatusDialogs = ({
     setShippingDialogOpen,
     order_id,
     payment_id,
-    revalidate
+    revalidate,
 }: {
     cancelOrderDialogOpen: boolean,
     setCancelOrderDialogOpen: (open: boolean) => void,
@@ -138,6 +138,7 @@ export const ChangeOrderStatusDialogs = ({
             toast({ description: "Error adding shipping details", duration: 1000, variant: "destructive"});
         }
     }
+    
     return (
         <>
             <AlertDialogComponent
@@ -152,12 +153,45 @@ export const ChangeOrderStatusDialogs = ({
             />
             <InputShippingDetailsComponent
                 open={shippingDialogOpen}
+                close={() => setShippingDialogOpen(false)}
                 action={async (shippingDetails) => {
                     setShippingDialogOpen(false);
                     await handleSetShippingDetails(shippingDetails, order_id);
                 }}
             />
         </>
+    )
+}
+
+export const OrderStatusesDisplay = ({ orders }: { orders: Kai.Order[] }) => {
+    const statusCount = orders.map((order) => order.order_status).reduce((acc, status) => {
+        acc[status] = acc[status] ? acc[status] + 1 : 1;
+        return acc;
+    }, {} as Record<string, number>);
+
+    Object.keys(orderStatusMap).forEach((status) => {
+        if (!statusCount[status]) {
+            statusCount[status] = 0;
+        }
+    });
+
+    return (
+        <div className="flex flex-col gap-2">
+            {
+                Object.entries(statusCount).map(([status, count]) => {
+                    return (
+                        <div key={status} className="flex flex-row gap-2 px-3 rounded-md bg-kai-gray/10">
+                            <div className="w-[110px]">
+                                {orderStatusMap[status as keyof typeof orderStatusMap]}
+                            </div>
+                            <div className="flex items-center ml-2">
+                                <h3 className="text-kai-gray">{count}</h3>
+                            </div>
+                        </div>
+                    )
+                })
+            }
+        </div>
     )
 }
 

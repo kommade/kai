@@ -17,7 +17,7 @@ const ReturnPageWrapper = async ({
         checkoutSession = await getCheckoutSession(session_id);
     }
     return (
-        <Suspense fallback={<MessageComponent message="Loading..."/>}>
+        <Suspense fallback={<LoadingComponent/>}>
             <ReturnPage session={checkoutSession} />
         </Suspense>
     )
