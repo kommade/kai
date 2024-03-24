@@ -2,6 +2,7 @@
 
 import FooterComponent from "@/components/FooterComponent"
 import HeaderComponent from "@/components/HeaderComponent"
+import OrderComponent from "@/components/OrderComponent";
 import { ChangeOrderStatusComponent, ChangeOrderStatusDialogs, OrderStatusMap, PaymentStatusMap, RefundStatusMap } from "@/components/StatusMaps"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -124,14 +125,7 @@ const OrderPage = ({ data, order_id, refund }: { data: Kai.Order, order_id: stri
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <h3 className="text-lg text-bold">Order Summary</h3>
-                                    {order.items.map((item) => (
-                                        <div key={item.product.key} className="flex flex-col gap-2">
-                                            <h3>{item.product.fullName}</h3>
-                                            <h3>Quantity: {item.count}</h3>
-                                            <h3>Price: {item.product.price}</h3>
-                                            <h3>Total: {item.total}</h3>
-                                        </div>
-                                    ))}
+                                    <OrderComponent data={order.items} />
                                 </div>
                             </div>
                         </div>

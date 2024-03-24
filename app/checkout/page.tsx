@@ -4,7 +4,7 @@ import { getSessionId, sessionIsActive, sessionIsExpired } from "@/functions/ses
 import { getCart, getCartTotal, setCartTotal } from "@/functions/database";
 import Kai from "@/lib/types";
 import { createCheckoutSession } from "@/functions/stripe";
-import MessageComponent from "@/components/MessageComponent";
+import LoadingComponent from "@/components/LoadingComponent";
 import { ifLoggedInGetUser } from "@/functions/auth";
 
 const CheckoutPageWrapper = async () => {
@@ -25,7 +25,7 @@ const CheckoutPageWrapper = async () => {
         checkoutSession = await createCheckoutSession(cart, auth.loggedIn ? auth.user : undefined);
     }
     return (
-        <Suspense fallback={<MessageComponent message="Loading..."/>}>
+        <Suspense fallback={<LoadingComponent/>}>
             <CheckoutPage data={{checkoutSession, total}} expired={sessionExpired} />
         </Suspense>
     )

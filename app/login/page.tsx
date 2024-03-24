@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react'
 import LoginPage from "./page-client"
-import MessageComponent from "@/components/MessageComponent";
+import LoadingComponent from "@/components/LoadingComponent";
 import { sessionIsActive, sessionIsExpired, getSessionId } from "@/functions/sessions";
 
 const CartPageWrapper = async () => {
@@ -11,7 +11,7 @@ const CartPageWrapper = async () => {
         session = await getSessionId();
     }
     return (
-        <Suspense fallback={<MessageComponent message="Loading..."/>}>
+        <Suspense fallback={<LoadingComponent/>}>
             <LoginPage session={session} />
         </Suspense>
     )

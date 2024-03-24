@@ -1,8 +1,9 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import OrderPage from "./page-client"
 import { changeOrderStatus, getOrder } from "@/functions/database";
-import MessageComponent from "@/components/MessageComponent";
 import { getRefundStatus } from "@/functions/stripe";
+import MessageComponent from "@/components/MessageComponent";
+import LoadingComponent from "@/components/LoadingComponent";
 
 const OrderPageWrapper = async ({ params }: { params: { id: string } }) => {
     const order = await getOrder(`order:${params.id}`);
@@ -22,7 +23,9 @@ const OrderPageWrapper = async ({ params }: { params: { id: string } }) => {
         }
     }
     return (
-        <OrderPage data={order} order_id={`order:${params.id}`} refund={refund_status} />
+        <Suspense fallback={<LoadingComponent/>}>
+            <OrderPage data={order} order_id={`order:${params.id}`} refund={refund_status} />
+        </Suspense>
     )
 }
 

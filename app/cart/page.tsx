@@ -3,7 +3,7 @@ import CartPage from "./page-client"
 import { getSessionId, sessionIsActive, sessionIsExpired } from "@/functions/sessions"
 import { getCart } from "@/functions/database";
 import Kai from "@/lib/types";
-import MessageComponent from "@/components/MessageComponent";
+import LoadingComponent from "@/components/LoadingComponent";
 
 const CartPageWrapper = async () => {
     const sessionActive = await sessionIsActive();
@@ -14,7 +14,7 @@ const CartPageWrapper = async () => {
         cart = (await getCart(session!))!;
     }
     return (
-        <Suspense fallback={<MessageComponent message="Loading..."/>}>
+        <Suspense fallback={<LoadingComponent/>}>
             <CartPage data={cart} expired={sessionExpired} />
         </Suspense>
     )

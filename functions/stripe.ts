@@ -88,3 +88,23 @@ export const getRefundStatus = async (refundId?: string) => {
         return "error";
     }
 }
+
+export const getDisputes = async () => {
+    try {
+        const disputes = await stripe.disputes.list();
+        return disputes.data;
+    } catch (error) {
+        console.error(error);
+        return [];
+    }
+}
+
+export const getBalance = async () => {
+    try {
+        const b = await stripe.balance.retrieve()
+        return { available: b.available[0].amount / 100, pending: b.pending[0].amount / 100 }
+    } catch (error) {
+        console.error(error);
+        return { available: 0, pending: 0 };
+    }
+}

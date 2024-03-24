@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
+    DialogClose,
     DialogContent,
     DialogDescription,
     DialogFooter,
@@ -20,7 +21,7 @@ import { useToast } from "./ui/use-toast";
 
 
 
-export function InputShippingDetailsComponent({ open, action }: { open: boolean, action: (shippingDetails: z.infer<typeof shippingFormSchema>) => void }) {
+export function InputShippingDetailsComponent({ open, close, action }: { open: boolean, close: () => void, action: (shippingDetails: z.infer<typeof shippingFormSchema>) => void }) {
     const form = useForm<z.infer<typeof shippingFormSchema>>({
         resolver: zodResolver(shippingFormSchema),
         defaultValues: {
@@ -30,7 +31,7 @@ export function InputShippingDetailsComponent({ open, action }: { open: boolean,
     });
 
     return (
-        <Dialog open={open}>
+        <Dialog open={open} onOpenChange={close}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle className="font-['TT_Chocolates']">Input Shipping Information</DialogTitle>
