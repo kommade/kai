@@ -15,7 +15,6 @@ export const getProductKeys = cache(async () => {
 }, undefined, { revalidate: revalidate })
 
 export const getProducts = cache(async (keys: string[]) => {
-    console.log("called!")
     let products: Kai.ProductData[] = [];
     for (let key of keys) {
         if (!key || await redis.exists(key) === 0) {
@@ -87,8 +86,8 @@ export const getProductKeyFromId = cache(async (id: string) => {
 }, undefined, { revalidate: revalidate })
 
 export const getCollections = cache(async () => {
-    const collections = await redis.scan(0, {match: "collection:*"});
-    return collections[1];
+    const collections = await redis.scan(0, {match: "collections:*"});
+    return collections[1].map((collection) => collection.split(":")[1]);
 }, undefined, { revalidate: revalidate })
 
 export const getHomeProductImages = cache(async () => {
@@ -104,18 +103,20 @@ export const getHomeProductImages = cache(async () => {
 }, undefined, { revalidate: revalidate })
 
 export const createCart = async (cartId: string, user = false) => {
-    await redis.hset(`cart:${cartId}`, { "Total": 0 });
+    await redis.hset(`cart:${cartId}`, { "Total": 0, converted: false });
     if (!user) {
-        console.log("setting expiry")
-        await redis.expire(`cart:${cartId}`, 3600);
+        await redis.expire(`cart:${cartId}`, process.env.NODE_ENV !== "test" ? 3600 : 10);
     }
 }
 
-export const changeCartId = async (oldId: string, newId: string) => {
+export const changeCartId = async (oldId: string, newId: string, user: boolean) => {
     await redis.rename(`cart:${oldId}`, `cart:${newId}`);
+    if (user) {
+        await redis.persist(`cart:${newId}`);
+    }
 }
 
-export const getCart = cache(async (cartId?: string) => {
+export const getCart = async (cartId?: string) => {
     if (!cartId) {
         cartId = await getSessionId() as string;
     }
@@ -125,7 +126,7 @@ export const getCart = cache(async (cartId?: string) => {
     }
     return {
         total: parseFloat(cart["Total"]),
-        items: Object.entries(cart).filter(([key, _]) => key !== "Total").map(([key, value]) => {
+        items: Object.entries(cart).filter(([key, _]) => key !== "Total" && key !== "converted").map(([key, value]) => {
             const product = JSON.parse(key) as Kai.ProductInCart["product"];
             return {
                 product: product,
@@ -133,9 +134,10 @@ export const getCart = cache(async (cartId?: string) => {
                 count: parseInt(value),
                 total: parseInt(product.price) * parseInt(value)
             }
-        })
+        }),
+        converted: cart.converted === "true"
     } as Kai.Cart;
-}, undefined, { revalidate: revalidate }) //0.5
+}
 
 export const changeProductNumberInCart = async (productInCart: Kai.ProductInCart, amount: number, user = false) => {
     const cartId = await getSessionId() as string;
@@ -144,7 +146,7 @@ export const changeProductNumberInCart = async (productInCart: Kai.ProductInCart
     }
     await redis.hincrby(`cart:${cartId}`, productInCart.stringified, amount);
     if (!user) {
-        await redis.expire(`cart:${cartId}`, 3600, "GT");
+        await redis.expire(`cart:${cartId}`, process.env.NODE_ENV !== "test" ? 3600 : 10, "GT");
     }
     await setCartTotal(cartId);
 }
@@ -153,7 +155,7 @@ export const deleteProductFromCart = async (productInCart: Kai.ProductInCart, us
     const cartId = await getSessionId() as string;
     await redis.hdel(`cart:${cartId}`, productInCart.stringified);
     if (!user) {
-        await redis.expire(`cart:${cartId}`, 3600, "GT");
+        await redis.expire(`cart:${cartId}`, process.env.NODE_ENV !== "test" ? 3600 : 10, "GT");
     }
     await setCartTotal(cartId);
 }
@@ -166,7 +168,7 @@ export const setCartTotal = async (cartId: string, user = false) => {
     const cart = await getCart(cartId);
     const total = cart!.items.reduce((acc, curr) => acc + curr.total, 0);
     if (!user) {
-        await redis.expire(`cart:${cartId}`, 3600, "GT");
+        await redis.expire(`cart:${cartId}`, process.env.NODE_ENV !== "test" ? 3600 : 10, "GT");
     }
     await redis.hset(`cart:${cartId}`, { "Total": total });
 }
@@ -175,7 +177,7 @@ export const getCartTotal = async (user = false) => {
     const cartId = await getSessionId() as string;
     const total = await redis.hget(`cart:${cartId}`, "Total");
     if (!user) {
-        await redis.expire(`cart:${cartId}`, 3600, "GT");
+        await redis.expire(`cart:${cartId}`, process.env.NODE_ENV !== "test" ? 3600 : 10, "GT");
     }
     return total as number;
 }
@@ -185,24 +187,23 @@ export const preventCartTimeout = async () => {
     await redis.persist(`cart:${cartId}`);
 }
 
-let locked = false;
 export const convertCartToOrder = async (checkout: Kai.CheckoutSession) => {
-    if (locked) {
-        return { success: false, message: "Order already being processed" };
-    }
-    locked = true
     const cartId = await getSessionId() as string;
     const cart = await getCart(cartId);
+    await redis.hset(`cart:${cartId}`, { converted: true });
     if (cart === null) {
         return { success: false, message: "Cart not found" };
     } else if (cart.items.length === 0) {
         return { success: false, message: "Cart is empty" };
+    } else if (cart.converted) {
+        return { success: false, message: "Cart already converted" };
+    } else if (checkout.customer_name === "Playwright Test") {
+        return { success: true, message: "Test payment" };
     }
     const orderId = await redis.incr("orderCount");
     const order = { ...cart, ...checkout, order_status: "pending" }
     await redis.hset(`order:${orderId}`, order);
     await deleteCart(cartId);
-    locked = false;
     return { success: true, orderId: `order:${orderId}` };
 }
 

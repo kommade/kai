@@ -28,7 +28,7 @@ const OrderPage = ({ data, order_id, refund }: { data: Kai.Order, order_id: stri
                 <HeaderComponent/>
                 <section className="mt-[80px] min-h-[calc(100vh_-_140px)] w-full h-fit flex flex-col justify-start items-center py-6">
                     <div className="w-[90%] justify-between flex flex-col gap-4">
-                        <h2 className="text-center w-fit text-[24px]">ORDER</h2>
+                        <h2 className="text-center w-fit text-[24px]">ORDER {`#${order_id.split(':')[1]}`}</h2>
                         <div className="w-full h-fit">
                             <div className="flex flex-col gap-4">
                                 <div className="flex pb-8 border-b-kai-grey border-b-2">
