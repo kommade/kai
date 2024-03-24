@@ -57,8 +57,10 @@ test('login admin', async ({ page }) => {
     await page.getByPlaceholder('Password').fill(process.env.WEBSITE_ADMIN_PASSWORD!);
     await page.getByRole('button', { name: 'Login' }).click();
     await page.waitForURL('./dashboard');
-    await expect(page.locator('section')).toContainText(/^DASHBOARDThere are [0-9]+ pending order\(s\).View Orders$/g, );
-    await page.getByRole('button', { name: 'View Orders' }).click();
+    await expect(page.getByText('OrdersViewPending 2Shipped')).toBeVisible();await expect(page.getByText('DisputesViewThere are 0')).toBeVisible();
+    await expect(page.getByText('BalanceViewSGD')).toBeVisible();
+    await expect(page.getByText('ActionsEdit productsNew')).toBeVisible();
+    await page.locator('div').filter({ hasText: /^OrdersView$/ }).getByRole('button').click();
     await page.waitForURL('./dashboard/orders');
     await page.locator('body > main > div > section > div > div > div.rounded-md.border > div > table > tbody > tr:nth-child(1)').getByRole('button').click();
     await expect(page.getByLabel('Open menu')).toBeVisible();
