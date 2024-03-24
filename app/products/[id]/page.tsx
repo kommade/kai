@@ -2,6 +2,7 @@ import React, { Suspense } from 'react'
 import { getProductKeyFromId, getProducts } from "@/functions/database"
 import ProductSpecificPage from './page-client';
 import LoadingComponent from "@/components/LoadingComponent";
+import MessageComponent from "@/components/MessageComponent";
 
 const ProductSpecificPageWrapper = async ({ params }: { params: { id: string } }) => {
     const productKey = await getProductKeyFromId(params.id);

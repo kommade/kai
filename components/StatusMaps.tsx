@@ -176,11 +176,11 @@ export const OrderStatusesDisplay = ({ orders }: { orders: Kai.Order[] }) => {
     });
 
     return (
-        <div className="flex flex-col gap-2">
+        <div className="grid grid-cols-2 gap-2">
             {
                 Object.entries(statusCount).map(([status, count]) => {
                     return (
-                        <div key={status} className="flex flex-row gap-2 px-3 rounded-md bg-kai-gray/10">
+                        <div key={status} className={`flex flex-row gap-2 px-3 rounded-md bg-kai-gray/10 ${status === "refunded" ? "col-span-2 w-full justify-center": "w-fit"}`}>
                             <div className="w-[110px]">
                                 {orderStatusMap[status as keyof typeof orderStatusMap]}
                             </div>

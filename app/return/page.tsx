@@ -3,14 +3,14 @@ import ReturnPage from "./page-client"
 import MessageComponent from "@/components/MessageComponent"
 import { getCheckoutSession } from "@/functions/stripe"
 import Kai from "@/lib/types"
+import LoadingComponent from "@/components/LoadingComponent"
 
 const ReturnPageWrapper = async ({
-    params,
     searchParams,
 }: {
-    params: { params: string }
     searchParams: { [key: string]: string | string[] | undefined }
-    }) => {
+    }
+) => {
     const session_id = searchParams.session_id as string | undefined;
     let checkoutSession: undefined | Kai.CheckoutSession;
     if (session_id) {
