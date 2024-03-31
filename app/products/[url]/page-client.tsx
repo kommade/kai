@@ -9,11 +9,10 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { changeProductNumberInCart } from "@/functions/database";
 
-const ProductSpecificPage = ({ product }: { product: Kai.ProductData }) => {
-    const { name, desc, images, collection, price, options } = product;
-    const [mainImage, setMainImage] = useState(images[0]);
+const ProductSpecificPage = ({ product }: { product: Kai.ProductWithCollectionOptions }) => {
+    const [mainImage, setMainImage] = useState(product.images[0]);
     const [quantity, setQuantity] = useState(1);
-    const [selectedOptions, setSelectedOptions] = useState<Kai.SelectedProductOptions>(Object.fromEntries(Object.entries(options).map(([option, values]) => [option, values[0]])));
+    const [selectedOptions, setSelectedOptions] = useState<Kai.SelectedOptions>(Array(product.options.length).fill(0));
     const [activeTab, setActiveTab] = useState('description');
     const [transition, setTransition] = useState(false);
 

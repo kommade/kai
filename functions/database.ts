@@ -2,7 +2,7 @@
 
 import Kai from "@/lib/types";
 import { Redis } from '@upstash/redis'
-import { unstable_cache as cache, revalidatePath } from "next/cache";
+import { unstable_cache as cache } from "next/cache";
 import { getSessionId } from "./sessions";
 
 
@@ -15,18 +15,18 @@ export const getProductKeys = cache(async () => {
 }, undefined, { revalidate: revalidate })
 
 export const getProducts = cache(async (keys: string[]) => {
-    let products: Kai.ProductData[] = [];
+    let products: Kai.Product[] = [];
     for (let key of keys) {
         if (!key || await redis.exists(key) === 0) {
             return { success: false, message: "Product(s) not found" };
         }
-        const res: (Kai.ProductData & { images: string | string[] }) | null = await redis.hgetall(key);
+        const res: (Kai.Product & { images: string | string[] }) | null = await redis.hgetall(key);
         if (res === null) {
             return { success: false, message: "Product(s) not found" };
         }
         res.images = (res.images as string).split(',');
         res.key = key;
-        products.push(res as Kai.ProductData);
+        products.push(res as Kai.Product);
     }
     return { success: true, data: products };
 }, undefined, { revalidate: revalidate })

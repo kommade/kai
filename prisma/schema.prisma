@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
+}
+
+type OrdersAddress {
+  city        String?
+  country     String?
+  line1       String?
+  line2       String?
+  postal_code String?
+  state       String?
+}
+
+type OrdersItems {
+  count           Int
+  selection_id    String
+  total           Float
+}
+
+model collections {
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  created_at  DateTime
+  product_ids String[]   @db.ObjectId
+  products    products[]
+}
+
+model orders {
+  id                String        @id @default(auto()) @map("_id") @db.ObjectId
+  address           OrdersAddress
+  amount_total      Float
+  customer          customer?
+  user              users?        @relation(fields: [userId], references: [id])
+  userId            String?       @db.ObjectId
+  invoice_id        String
+  items             OrdersItems[]
+  order_id          Int
+  order_status      String
+  payment_id        String
+  payment_status    String
+  total             Float
+  shipping_provider String?
+  tracking_number   String?
+  refund_id         String?
+
+  @@index([order_id], name: "order_id_1")
+}
+
+model productOptions {
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  selection   String[]
+  product_ids String[]   @db.ObjectId
+  products    products[] @relation(fields: [product_ids], references: [id])
+}
+
+model products {
+  id            String           @id @default(auto()) @map("_id") @db.ObjectId
+  collection_id String           @db.ObjectId
+  collection    collections      @relation(fields: [collection_id], references: [id])
+  desc          String
+  images        String[]
+  name          String
+  option_ids    String[]         @db.ObjectId
+  options       productOptions[] @relation(fields: [option_ids], references: [id])
+  price         Float
+  stripeId      String
+  url           String
+  type          String
+
+  @@index([name, desc, type], name: "product_index")
+}
+
+model users {
+  id       String   @id @default(auto()) @map("_id") @db.ObjectId
+  email    String   @unique
+  hash     String
+  last     String
+  role     String
+  verified Boolean  @default(false)
+  orders   orders[]
+  cart     carts?
+}
+
+type customer {
+  email String 
+  name  String
+}
+
+model carts {
+  id         String      @id @default(auto()) @map("_id") @db.ObjectId
+  items      CartItems[]
+  user       users?      @relation(fields: [user_id], references: [id])
+  user_id    String?     @unique @db.ObjectId
+  session_id String?     @unique
+  total      Float
+  converted  Boolean     @default(false)
+  expires    DateTime
+
+  @@index([items.selection_id], name: "items.selection_id_1")
+  @@index([expires], name: "expires_1")
+}
+
+type CartItems {
+  selection_id    String
+  count           Int
+  total           Float
+}

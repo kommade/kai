@@ -1,4 +1,5 @@
 import Stripe from "stripe";
+import { products, productOptions, orders, carts, users, collections, Prisma, CartItems } from "@prisma/client";
 
 export type Expand<T> = T extends (...args: infer A) => infer R
   ? (...args: Expand<A>) => Expand<R>
@@ -15,56 +16,45 @@ export type ExpandRecursively<T> = T extends (...args: infer A) => infer R
     : T;
   
 namespace Kai {
-    export type ProductData = {
-        id: string // This is the id in the URL
-        key: string; // This is the key in the database
-        collection: string;
-        type: string;
-        name: string;
-        images: string[];
-        desc: string;
-        price: string;
-        options: string | ProductOptions;
-        stripeId: string;
-    };
+    export type Collection = collections
 
-    export type ProductOptions = {
-        [option: string]: string[];
-    };
+    export type ProductId = string
 
-    export type ProductInCart = {
-        product: {
-            key: string;
-            collection: string;
-            name: string;
-            fullName: string;
-            type: string;
-            price: string;
-            image: string;
-            options: SelectedProductOptions;
-            stripeId: string;
-        }
-        stringified: string;
-        count: number;
-        total: number;
-    }
+    export type Product = products
 
-    export type SelectedProductOptions = {
-        [option: string]: string;
-    };
+    export type ProductInCart = CartItems
 
-    export type Cart = {
-        items: ProductInCart[]
-        total: number
-        converted: boolean
-    };
+    const productWithCollection = Prisma.validator<Prisma.productsDefaultArgs>()({
+        include: { collection: true }
+    })
 
-    export type User = {
-        email: string;
-        hash: string;
-        role: string;
-        last: string;
-    };
+    export type ProductWithCollection = Prisma.productsGetPayload<typeof productWithCollection>
+
+    const productWithCollectionOptions = Prisma.validator<Prisma.productsDefaultArgs>()({
+        include: { collection: true, options: true }
+    })
+
+    export type ProductWithCollectionOptions = Prisma.productsGetPayload<typeof productWithCollectionOptions>
+
+    export type ProductWithShortCollectionOptions = ExpandRecursively<Omit<ProductWithCollectionOptions, 'collection' | 'options'> & { collection: Pick<Collection, 'name'>, options: Pick<ProductOptions, 'name' | 'selection'>[]}>
+
+    export type SelectedOptions = number[]
+
+    export type ProductOptions = productOptions
+
+    export type Cart = carts & ({ session_id: string;  userId?: null } | { session_id?: null; userId: string })
+
+    export type User = users
+
+    const userWithCartOrders = Prisma.validator<Prisma.usersDefaultArgs>()({
+        include: { cart: true, orders: true }
+    })
+
+    export type UserWithCartOrders = Prisma.usersGetPayload<typeof userWithCartOrders>;
+    
+    export type UserResult =
+    | { loggedIn: false; user: string }
+    | { loggedIn: true; user: Kai.User };
 
     export type CheckoutSession = {
         payment_status: string;
@@ -75,19 +65,14 @@ namespace Kai {
         amount_total: number,
         invoice_id: string,
     }
-
-    export type UserResult =
-        | { loggedIn: false; user: string }
-        | { loggedIn: true; user: Kai.User };
     
-    export type Order = ExpandRecursively<CheckoutSession> & Omit<Cart, 'total'> & {
-        order_status: "pending" | "shipped" | "delivered" | "cancelled" | "refunded";
-        shipping_provider?: string;
-        tracking_number?: string;
-        refund_id?: string;
-    };
-
+    export type Order = orders & ({ customer: Customer; userId?: null } | { customer?: null; userId: string });
     export type Orders = Record<string, Kai.Order>;
+
+    export type Customer = {
+        name: string;
+        email: string;
+    }
 }
 
 export default Kai;
