@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react'
 import ProductPage from "./page-client"
-import { getCollections, getProductIds, getProductsById } from "@/functions/mongodb"
+import { getCollections, getProductIds, getProductsById } from "@/functions/database"
 import LoadingComponent from "@/components/LoadingComponent";
 import MessageComponent from "@/components/MessageComponent";
 

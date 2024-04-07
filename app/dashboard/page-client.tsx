@@ -11,11 +11,12 @@ import { Button } from "@/components/ui/button";
 import { OrderStatusesDisplay } from "@/components/StatusMaps";
 import { UserRoundSearch, Truck, FilePenLine, ChevronDown, ExternalLink, Package, Scale, PiggyBank, Plus, Pencil, PercentCircle } from "lucide-react";
 import Stripe from "stripe";
+import { zodValidateOrder } from "@/lib/zod";
+import { z } from "zod";
 
-const DashboardPage = ({ auth, data, stripe }:
+const DashboardPage = ({ data, stripe }:
     {
-        auth: Kai.UserResult,
-        data: Kai.Orders,
+        data: Kai.Order[],
         stripe: {
             disputes: Stripe.Dispute[],
             balance: {
@@ -27,12 +28,19 @@ const DashboardPage = ({ auth, data, stripe }:
 ) => {
     const { toast } = useToast();
     const router = useRouter();
+    const validate: (z.infer<typeof zodValidateOrder> | null)[] = data.map(order => {
+        try {
+            return zodValidateOrder.parse(order);
+        } catch (error) {
+            console.log(error)
+            return null;
+        }
+    })
 
-    if (!auth.loggedIn) {
-        router.push("/login?redirect=/dashboard");
-        toast({ description: "Please log in to proceed!", duration: 2000, variant: "destructive" });
-        return;
+    if (validate.includes(null)) {
+        toast({ description: "There was an error parsing orders. Please report this to an administrator.", duration: 2000, variant: "destructive" });
     }
+    const orders = validate.filter((order): order is NonNullable<typeof order> => order !== null);
 
     const moneyFormatter = new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -57,7 +65,7 @@ const DashboardPage = ({ auth, data, stripe }:
                                         </div>
                                         <div className="flex gap-2">
                                             <div className="flex flex-col h-[130px] w-[300px] gap-1">
-                                                <OrderStatusesDisplay orders={Object.values(data)} />
+                                                <OrderStatusesDisplay orders={orders} />
                                             </div>
                                         </div>
                                     </div>

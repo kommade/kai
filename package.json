@@ -7,14 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "next build && next start",
+    "pw": "next build && NODE_ENV=test next start",
     "prisma schema": "dotenv -e .env.local -- prisma db pull",
     "prisma studio": "dotenv -e .env.local -- prisma studio",
     "postinstall": "prisma generate --no-engine"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
-    "@prisma/client": "^5.11.0",
     "@prisma/extension-accelerate": "^1.0.0",
     "@radix-ui/react-alert-dialog": "^1.0.5",
     "@radix-ui/react-checkbox": "^1.0.4",
@@ -31,6 +30,7 @@
     "@upstash/redis": "^1.28.4",
     "again": "^0.0.1",
     "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "cmdk": "^0.2.1",
@@ -49,7 +49,9 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.42.1",
+    "@prisma/client": "^5.12.1",
     "@types/bcrypt": "^5.0.2",
+    "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20",
     "@types/react": "^18",
@@ -58,7 +60,7 @@
     "eslint": "^8",
     "eslint-config-next": "14.1.0",
     "postcss": "^8.4.35",
-    "prisma": "^5.11.0",
+    "prisma": "^5.12.1",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
   }

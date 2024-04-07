@@ -18,8 +18,8 @@ const ProductItem = ({product}: {product: Kai.Product}) => {
                 onMouseEnter={() => setHover(true)}
                 onMouseLeave={() => setHover(false)}
             >
-                <Link href={`/products/${product.id}`}>
-                    <Image className={`absolute w-full h-full object-cover transition-all duration-300 ${hover ? "brightness-75": ""}`} src={product.images[0]} width={0} height={0} alt="placeholder" sizes="30vw" draggable={false}/>
+                <Link href={`/products/${product.url}`}>
+                    <Image className={`absolute w-full h-full object-cover transition-all duration-300 ${hover ? "brightness-75" : ""}`} src={product.images[0]} width={0} height={0} alt={product.url} sizes="30vw" draggable={false}/>
                     <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-kai-white w-[60%] h-[30%] rounded-sm flex flex-col justify-center items-center transition-opacity duration-300 ${hover ? "opacity-80" : "opacity-0"}`}>
                         <h3 className="text-center w-fit h-fit mx-4">{product.name}</h3>
                     </div>

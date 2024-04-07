@@ -1,21 +1,18 @@
 import React, { Suspense } from 'react'
 import CartPage from "./page-client"
-import { getSessionId, sessionIsActive, sessionIsExpired } from "@/functions/sessions"
-import { getCart } from "@/functions/database";
-import Kai from "@/lib/types";
+import { getSessionIdOrNew } from "@/functions/sessions"
+import { getSessionId } from "@/functions/sessions-edge";
+import { getCartWithProducts } from "@/functions/database";
 import LoadingComponent from "@/components/LoadingComponent";
+import { isLoggedIn } from "@/functions/auth";
 
 const CartPageWrapper = async () => {
-    const sessionActive = await sessionIsActive();
-    const sessionExpired = await sessionIsExpired();
-    let cart: Kai.Cart | undefined;
-    if (sessionActive && !sessionExpired) {
-        const session = await getSessionId();
-        cart = (await getCart(session!))!;
-    }
+    const loggedIn = await isLoggedIn();
+    const session_id = await getSessionId();
+    const cart = session_id ? await getCartWithProducts(session_id, loggedIn) : null;
     return (
         <Suspense fallback={<LoadingComponent/>}>
-            <CartPage data={cart} expired={sessionExpired} />
+            <CartPage data={cart} expired={session_id === null } loggedIn={loggedIn} />
         </Suspense>
     )
 }

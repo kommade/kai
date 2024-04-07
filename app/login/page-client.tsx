@@ -7,21 +7,23 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { loginFormSchema } from "@/lib/zod";
 import { useForm } from "react-hook-form"
-import { z } from "zod";
+import { set, z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { login } from "@/functions/auth";
-import { useState } from "react";
+import { use, useEffect, useState } from "react";
 import Kai from "@/lib/types";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/components/ui/use-toast";
+import { getSessionIdOrNew } from "@/functions/sessions";
 
 
-const LoginPage = ({ session }: { session?: string }) => {  
+const LoginPage = ({ session }: { session: string | null }) => {  
     const router = useRouter();
     const searchParams = useSearchParams();
     const redirect = searchParams.get("redirect") ?? "/";
     const { toast } = useToast();
     const [response, setResponse] = useState<string>("");
+    const [sessionId, setSessionId] = useState<string>(session ?? "");
     const form = useForm<z.infer<typeof loginFormSchema>>({
         resolver: zodResolver(loginFormSchema),
         defaultValues: {
@@ -30,18 +32,24 @@ const LoginPage = ({ session }: { session?: string }) => {
         }
     });
     
-    if (session) {
-        if (z.string().email().safeParse(session).success) {
-            router.push(redirect)
-            toast({ description: "You are already logged in!", duration: 1000 });
-            return;
+    useEffect(() => {
+        const checkSession = async () => {
+            setSessionId(await getSessionIdOrNew());
         }
-    }
+        if (sessionId) {
+            if (z.string().email().safeParse(sessionId).success) {
+                router.push(redirect)
+                toast({ description: "You are already logged in!", duration: 1000 });
+                return;
+            }
+        } else if (sessionId === null) {
+            checkSession();
+        }
+    }, [sessionId, redirect])
 
     async function onSubmit(data: z.infer<typeof loginFormSchema>) {  
         const res = await login(data.email, data.password);
         if (res.success) {
-            setResponse("");
             const user = res.data as Kai.User;
             if (user.role === "admin") {
                 router.push("/dashboard");

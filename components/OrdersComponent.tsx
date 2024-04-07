@@ -9,37 +9,34 @@ import { DataTable } from "./DataTable";
 import { useRouter } from "next/navigation";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuPortal, DropdownMenuSubContent } from "./ui/dropdown-menu";
 import Stripe from "stripe";
-import { getOrders } from "@/functions/database";
+import { getAllOrders } from "@/functions/database";
 import { useToast } from "./ui/use-toast";
 import { ChangeOrderStatusComponent, ChangeOrderStatusDialogs, OrderStatusMap, PaymentStatusMap } from "./StatusMaps";
+import { zodValidateOrder } from "@/lib/zod";
+import { z } from "zod";
 
-const OrdersComponent = ({ data }: { data: Kai.Orders | undefined }) => {
+const OrdersComponent = ({ data, next, canNextPage }: { data?: Kai.Order[], next?: (cursor: number) => Promise<Kai.Order[]>, canNextPage?: (cursor: number) => boolean }) => {
     const {toast} = useToast();
     const router = useRouter();
-    const [orders, setOrders] = React.useState<Kai.Orders>(data || {});
+    const [orders, setOrders] = React.useState<Kai.Order[]>(data || []);
     const [cancelOrderDialogOpen, setCancelOrderDialogOpen] = React.useState(false);
     const [shippingDialogOpen, setShippingDialogOpen] = React.useState(false);
     
     
 
-    const columns: ColumnDef<Expand<Kai.Order & { orderId: string }>>[] = [
+    const columns: ColumnDef<Expand<Kai.Order>>[] = [
         {
-            accessorKey: "orderId",
+            accessorKey: "order_id",
             header: "Order ID",
-            cell: ({ row }) => {
-                const id = row.getValue("orderId") as string;
-                return (
-                    <span className="text-kai-blue">{id.split('order:')[1]}</span>
-                )
-            }
         },
         {
-            accessorKey: "customer_name",
             header: "Name",
+            cell: ({ row }) => <span className="text-kai-blue">{row.original.customer?.name ?? row.original.user?.name}</span>
         },
         {
-            accessorKey: "customer_email",
+
             header: "Email",
+            cell: ({ row }) => <span className="text-kai-blue">{row.original.customer?.email ?? row.original.user?.email}</span>
         },
         {
             accessorKey: "address",
@@ -56,7 +53,7 @@ const OrdersComponent = ({ data }: { data: Kai.Orders | undefined }) => {
             accessorKey: "amount_total",
             header: "Amount payable",
             cell: ({ row }) => {
-                const price = row.getValue("amount_total") as number / 100;
+                const price = row.getValue("amount_total") as number;
                 const formatted = new Intl.NumberFormat("en-US", {
                     style: "currency",
                     currency: "SGD",
@@ -88,7 +85,7 @@ const OrdersComponent = ({ data }: { data: Kai.Orders | undefined }) => {
                     )
                 },
             cell: ({ row }) => {
-                const status = row.getValue("order_status") as Kai.Order['order_status'];
+                const status = row.getValue("order_status") as z.infer<typeof zodValidateOrder>['order_status'];
                 return (
                     <div className="w-[110px]">
                         <OrderStatusMap status={status}/>
@@ -99,8 +96,8 @@ const OrdersComponent = ({ data }: { data: Kai.Orders | undefined }) => {
         {
             id: 'actions',
             header: 'Actions',
-            cell: ({ row }) => {
-                const order_id = row.getValue("orderId") as string;
+            cell: ({ row, table }) => {
+                const order_id = row.getValue("order_id") as number;
                 const payment_id = row.original.payment_id;
                 return (
                     <>
@@ -112,7 +109,7 @@ const OrdersComponent = ({ data }: { data: Kai.Orders | undefined }) => {
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="bg-kai-white">
-                                <DropdownMenuItem onClick={() => router.push(`/dashboard/orders/${order_id.split('order:')[1]}`)}>View order</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => router.push(`/dashboard/orders/${order_id}`)}>View order</DropdownMenuItem>
                                 <DropdownMenuSub>
                                     <DropdownMenuSubTrigger>
                                         <span>Update order status</span>
@@ -121,7 +118,7 @@ const OrdersComponent = ({ data }: { data: Kai.Orders | undefined }) => {
                                         <DropdownMenuSubContent className="bg-kai-white">
                                             <ChangeOrderStatusComponent
                                                 data={row.original}
-                                                revalidate={async () => setOrders(await getOrders())}
+                                                revalidate={async () => setOrders(await getAllOrders(1, table.getState().pagination.pageIndex * 5))}
                                                 order_id={order_id}
                                                 setCancelOrderDialogOpen={setCancelOrderDialogOpen}
                                                 setShippingDialogOpen={setShippingDialogOpen}
@@ -140,7 +137,7 @@ const OrdersComponent = ({ data }: { data: Kai.Orders | undefined }) => {
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                     onClick={() => {
-                                        navigator.clipboard.writeText(order_id)
+                                        navigator.clipboard.writeText(order_id.toString());
                                         toast({ description: "Copied to clipboard!", duration: 1000, variant: "success" })
                                     }}
                                 >
@@ -155,7 +152,7 @@ const OrdersComponent = ({ data }: { data: Kai.Orders | undefined }) => {
                             setShippingDialogOpen={setShippingDialogOpen}
                             order_id={order_id}
                             payment_id={payment_id}
-                            revalidate={async () => setOrders(await getOrders())}
+                            revalidate={async () => setOrders(await getAllOrders(1, table.getState().pagination.pageIndex * 5))}
                         />
                     </>
                 )
@@ -165,9 +162,9 @@ const OrdersComponent = ({ data }: { data: Kai.Orders | undefined }) => {
     
     return (
         <>
-            <DataTable columns={columns} data={Object.entries(orders).map(([orderId, order]) => ({ ...order, orderId }))} />
+            <DataTable columns={columns} data={orders} next={next} canNextPage={canNextPage} />
         </>
     );
 }
 
-export default React.memo(OrdersComponent)
+export default OrdersComponent

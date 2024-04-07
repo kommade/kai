@@ -21,8 +21,22 @@ namespace Kai {
     export type ProductId = string
 
     export type Product = products
-
-    export type ProductInCart = CartItems
+    type e = CartItems
+    export type ProductInCart = ExpandRecursively<{
+        product: Omit<
+                    Omit<
+                        ProductWithCollectionOptions, 'collection' | 'options'
+                    > & {
+                        collection: Pick<Collection, 'name'>,
+                        options: Pick<ProductOptions, 'name' | 'selection'>[]
+                    },
+                    "desc" | "collection_id" | "images" | "option_ids"
+                > & { image: string };
+        selected_options: SelectedOptions;
+        count: number;
+        total: number;
+        selection_id: string;
+    }>
 
     const productWithCollection = Prisma.validator<Prisma.productsDefaultArgs>()({
         include: { collection: true }
@@ -35,14 +49,13 @@ namespace Kai {
     })
 
     export type ProductWithCollectionOptions = Prisma.productsGetPayload<typeof productWithCollectionOptions>
-
-    export type ProductWithShortCollectionOptions = ExpandRecursively<Omit<ProductWithCollectionOptions, 'collection' | 'options'> & { collection: Pick<Collection, 'name'>, options: Pick<ProductOptions, 'name' | 'selection'>[]}>
-
+    
     export type SelectedOptions = number[]
 
     export type ProductOptions = productOptions
 
-    export type Cart = carts & ({ session_id: string;  userId?: null } | { session_id?: null; userId: string })
+    export type Cart = carts & ({ session_id: string; user_id?: null } | { session_id?: null; user_id: string })
+    export type CartWithProducts = Expand<Omit<Cart, "items"> & { items: ProductInCart[] }>
 
     export type User = users
 
@@ -65,9 +78,9 @@ namespace Kai {
         amount_total: number,
         invoice_id: string,
     }
-    
-    export type Order = orders & ({ customer: Customer; userId?: null } | { customer?: null; userId: string });
-    export type Orders = Record<string, Kai.Order>;
+
+    export type Order = orders & { user?: users | null }
+    export type OrderWithProducts = Expand<Omit<Order, "items"> & { items: (ProductInCart | null)[] }>
 
     export type Customer = {
         name: string;

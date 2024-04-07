@@ -2,6 +2,7 @@
 
 import FooterComponent from "@/components/FooterComponent";
 import HeaderComponent from "@/components/HeaderComponent";
+import { useToast } from "@/components/ui/use-toast";
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { useRouter } from "next/navigation";
@@ -12,16 +13,24 @@ const stripePromise = loadStripe("pk_test_51Ort11GiBtQvXAdHTiJIvVBgrzl42qy3q1Pz3
 const CheckoutPage = ({ data, expired }:
 {
     data: {
-        checkoutSession: string,
-        total: number
+        checkoutSession: string | null,
+        total?: number
     },
     expired: boolean
     }
 ) => {
+    const { toast } = useToast();
     const router = useRouter();
     useEffect(() => {
-        if (expired || data.checkoutSession === "" || data.total === 0) {
-            router.push("/cart?error=true");
+        if (data.total === 0) {
+            router.push("/cart");
+            toast({ description: "Your cart is empty. Please add items to proceed!", duration: 2000, variant: "destructive" });
+        } else if (expired) {
+            router.push("/cart");
+            toast({ description: "Your session has expired. Please add items to proceed!", duration: 2000, variant: "destructive" });
+        } else if (data.checkoutSession === null) {
+            router.push("/cart");
+            toast({ description: "There was an error creating a checkout session. Please try again.", duration: 2000, variant: "destructive" });
         }
     }, [expired, data.checkoutSession, data.total]);
     return (

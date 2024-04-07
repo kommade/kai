@@ -6,18 +6,35 @@ import HeaderComponent from "@/components/HeaderComponent"
 import { useToast } from "@/components/ui/use-toast";
 import Kai from "@/lib/types"
 import { useRouter } from "next/navigation";
+import React, { useEffect } from 'react'
+import { zodValidateOrder } from "@/lib/zod";
+import { z } from "zod";
+import { getAllOrders, getNumberOfOrders } from "@/functions/database";
 
-import React from 'react'
-
-const OrdersPage = ({ auth, data }: { auth: Kai.UserResult, data: Kai.Orders }) => {
+const OrdersPage = ({ auth, data, n }: { auth: Kai.UserResult, data: Kai.Order[], n: number }) => {
     const { toast } = useToast();
+    const orders: z.infer<typeof zodValidateOrder>[] = data.map(order => {
+        try {
+            return zodValidateOrder.parse(order);
+        } catch (error) {
+            console.error(error);
+            toast({ description: "There was an error parsing orders. Please report this to an administrator.", duration: 2000, variant: "destructive" });
+            return null;
+        }
+    }).filter((order): order is NonNullable<typeof order> => order !== null);
     const router = useRouter();
 
-    if (!auth.loggedIn) {
-        router.push("/login?redirect=/dashboard");
-        toast({ description: "Please log in to proceed!", duration: 2000, variant: "destructive" });
-        return;
-    }
+    useEffect(() => {
+        if (!auth.loggedIn) {
+            router.push("/login?redirect=/dashboard");
+            toast({ description: "Please log in to proceed!", duration: 2000, variant: "destructive" });
+            return;
+        }
+    }, [auth.loggedIn])
+
+    const handleNext = async (cursor: number) => await getAllOrders(cursor, 5);
+
+    const handleCanNextPage = (cursor: number) => cursor < n;
 
     return (
         <main className="flex flex-col items-center justify-between min-h-screen">
@@ -26,7 +43,7 @@ const OrdersPage = ({ auth, data }: { auth: Kai.UserResult, data: Kai.Orders }) 
                 <section className="mt-[80px] min-h-[calc(100vh_-_140px)] w-full h-fit flex flex-col justify-start items-center py-6">
                     <div className="w-[90%] justify-between flex flex-col gap-4">
                         <h2 className="text-center w-fit text-[24px]">ORDERS</h2>
-                        <OrdersComponent data={data}/>
+                        <OrdersComponent data={orders} next={handleNext} canNextPage={handleCanNextPage}/>
                     </div>
                 </section>
                 <FooterComponent />

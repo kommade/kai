@@ -2,12 +2,13 @@
 
 import Kai from "@/lib/types";
 import Stripe from 'stripe';
+import { getProductsStripeIdById } from "./database";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
-export const createCheckoutSession = async (cart: Kai.Cart, user?: Kai.User) => {
+export const createCheckoutSession = async (cart: Kai.CartWithProducts, user?: Kai.User) => {
     try {
-        const priceIds = await Promise.all(cart.items.map((item) => stripe.products.retrieve(item.product.stripeId).then((product) => product.default_price as string)));
+        const priceIds = await Promise.all(cart.items.map((item) => stripe.products.retrieve(item.product.stripe_id).then((product) => product.default_price as string)));
         const products = priceIds.map((id, index) => {
             return {
                 price: id,

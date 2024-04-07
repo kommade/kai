@@ -1,6 +1,6 @@
 "use client";
 
-import { getCart, deleteProductFromCart, changeProductNumberInCart } from "@/functions/database";
+import { deleteProductFromCart, changeProductNumberInCart, getCartWithProducts } from "@/functions/database";
 import Kai from "@/lib/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { Minus, Plus, XIcon } from "lucide-react";
@@ -10,49 +10,51 @@ import Image from "next/image";
 import { DataTable } from "./DataTable";
 import { useRouter } from "next/navigation";
 
-const CartComponent = ({ data }: { data: Kai.Cart | undefined }) => {
+const CartComponent = ({ data, loggedIn }: { data?: Kai.CartWithProducts | null, loggedIn: boolean }) => {
     const router = useRouter();
-    const [cart, setCart] = React.useState<Kai.Cart>(data || { items: [], total: 0, converted: false });
+    const [cart, setCart] = React.useState<Kai.CartWithProducts>(data ?? { items: [] as Kai.CartWithProducts['items'] } as Kai.CartWithProducts);
+    
     useEffect(() => {
         if (data) {
             return;
         }
         const fetchCart = async () => {
-            setCart(await getCart() || { items: [], total: 0, converted: false })
+            setCart(await getCartWithProducts())
         }
         fetchCart();
     }, [data])
 
-    const updateProductCount = React.useCallback(async (product: Kai.ProductInCart, count?: number) => {
+    const updateProductCount = async (product: Kai.ProductInCart, count?: number) => {
         if (count === undefined) {
-            await deleteProductFromCart(product);
+            await deleteProductFromCart(product.selection_id, loggedIn);
             setCart((prev) => ({
-                total: prev.total - product.total,
-                items: prev.items.filter((inCart) => inCart.stringified !== product.stringified),
-                converted: prev.converted
-            }));
+                ...prev,
+                items: prev.items.filter(inCart => inCart !== null && inCart.selection_id !== product.selection_id),
+                total: prev.total - (product.total * product.count)
+
+            } as Kai.CartWithProducts));
             return;
         }
-        await changeProductNumberInCart(product, count);
+        await changeProductNumberInCart(product.selection_id, count, product.product.price, loggedIn);
         setCart((prev) => {
             const newItems = prev.items.map((inCart) => {
-                if (inCart.stringified === product.stringified) {
+                if (inCart !== null && inCart.selection_id === product.selection_id) {
                     return {
                         ...inCart,
                         count: inCart.count + count,
-                        total: inCart.total + (count * parseFloat(product.product.price))
+                        total: inCart.total + (count * product.product.price)
                     }
                 }
                 return inCart;
-            }).filter((inCart) => inCart.count > 0);
+            }).filter((inCart) => inCart !== null);
             return {
-                total: newItems.reduce((acc, curr) => acc + curr.total, 0),
+                ...prev,
+                total: newItems.reduce((acc, curr) => acc + curr!.total, 0),
                 items: newItems,
-                converted: prev.converted
             }
-        
+
         })
-    }, [setCart])
+    }
 
     const columns: ColumnDef<Kai.ProductInCart>[] = [
         {
@@ -64,7 +66,7 @@ const CartComponent = ({ data }: { data: Kai.Cart | undefined }) => {
                     <div className="flex items-center gap-3">
                         <Image src={product.image} alt={product.name} className="w-[50px] h-[50px] object-cover rounded-md" width={50} height={50} sizes="50px"/>
                         <div>
-                            <h3>{product.fullName}</h3>
+                            <h3>{product.name}</h3>
                             <p>{product.type.charAt(0).toUpperCase() + product.type.slice(1)}</p>
                         </div>
                     </div>
@@ -72,12 +74,13 @@ const CartComponent = ({ data }: { data: Kai.Cart | undefined }) => {
             }
         },
         {
-            accessorKey: "product",
+            accessorKey: "selected_options",
             header: "Options",
             cell: ({ row }) => {
                 const product = row.getValue("product") as Kai.ProductInCart["product"];
-                const options = product.options as Kai.SelectedProductOptions;
-                return Object.values(options).join(", ");
+                const selected_options = row.getValue("selected_options") as Kai.ProductInCart["selected_options"];
+                const optionsList = product.options.map((option, index) => option.selection[selected_options[index]]);
+                return optionsList.join(", ");
             }
         },
         {
@@ -85,7 +88,7 @@ const CartComponent = ({ data }: { data: Kai.Cart | undefined }) => {
             header: "Price",
             cell: ({ row }) => {
                 const product = row.getValue("product") as Kai.ProductInCart["product"];
-                const price = parseFloat(product.price);
+                const price =product.price;
                 const formatted = new Intl.NumberFormat("en-US", {
                     style: "currency",
                     currency: "SGD",

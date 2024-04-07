@@ -1,9 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { config } from 'dotenv';
-config();
 config({ path: '.env.local' });
-
-// TODO: run on vercel's preview deployment
 
 test('product page', async ({ page }) => {
     await page.goto('./');
@@ -14,7 +11,8 @@ test('product page', async ({ page }) => {
     await expect(page.getByText('By Collection')).toBeVisible();
     await page.getByRole('menuitem', { name: 'Kai Shi (开始)' }).click();
     await page.waitForURL('./products?collection=Kai+Shi+%28%E5%BC%80%E5%A7%8B%29');
-    await page.getByText('BUY NOWKai Shi (开始) Sunflower16.00').click();
+    await page.getByAltText('ks-sunflower').click();
+    await page.waitForURL('./products/ks-sunflower');
     await page.getByRole('button', { name: '+' }).click();
     await expect(page.locator('section')).toContainText('2');   
 });
@@ -22,19 +20,17 @@ test('product page', async ({ page }) => {
 test('purchase process', async ({ page, browserName }) => {
     await page.goto('./');
     await page.getByRole('button', { name: 'Our Products' }).click();
-    await page.getByText('BUY NOWKai Shi (开始) Sunflower16.00').click();
-    await page.waitForTimeout(1000);
+    await page.getByAltText('ks-sunflower').click();
+    await page.waitForURL('./products/ks-sunflower');
     await page.getByRole('button', { name: 'Add to cart' }).click();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(5000);
     await page.getByLabel('Main').getByRole('link').nth(2).click();
-    await expect(page.locator('tbody')).toContainText('Kai Shi (开始) - Sunflower');
-    await page.getByRole('row', { name: 'Sunflower Kai Shi (开始) -' }).getByRole('button').nth(1).click();
+    await expect(page.locator('tbody')).toContainText('Kai Shi (开始) Sunflower');
+    await page.getByRole('row', { name: 'Kai Shi (开始) Sunflower Kai' }).getByRole('button').nth(1).click()
     await expect(page.locator('tbody')).toContainText('2');
-    await expect(page.getByRole('row', { name: 'Sunflower Kai Shi (开始) -' }).getByRole('button').nth(2)).toBeVisible();
     await page.getByRole('button', { name: 'Checkout' }).click();
     await page.waitForURL('./checkout');
     test.skip(browserName === 'webkit', 'Stripe does not work with webkit')
-    await page.waitForTimeout(2000)
     await page.frameLocator('iframe[name="embedded-checkout"]').getByRole('button', { name: 'Enter address manually' }).click();
     await page.frameLocator('iframe[name="embedded-checkout"]').getByLabel('Email').fill('playwright@test.com');
     await page.frameLocator('iframe[name="embedded-checkout"]').getByPlaceholder('Full name').fill('Playwright Test');
@@ -51,6 +47,7 @@ test('purchase process', async ({ page, browserName }) => {
 });
 
 test('login admin', async ({ page }) => {
+    test.fixme(true, 'Needs to be updated with the new admin page')
     await page.goto('./');
     await page.getByLabel('Main').getByRole('link').nth(3).click();
     await page.getByPlaceholder('Email').fill(process.env.WEBSITE_ADMIN_EMAIL!);

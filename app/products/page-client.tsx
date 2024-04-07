@@ -1,7 +1,6 @@
 "use client";
 
-import Image from "next/image"
-import React, { use, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import FooterComponent from "@/components/FooterComponent"
 import HeaderComponent from "@/components/HeaderComponent"
 import {
@@ -10,7 +9,7 @@ import {
 } from "@/components/ui/command"
 import { ProductGrid} from "@/components/ProductGrid"
 import Kai from "@/lib/types"
-import { getProductsById, searchForProducts } from "@/functions/mongodb"
+import { getProductsById, searchForProducts } from "@/functions/database"
 import { Pagination, PaginationContent, PaginationItem, PaginationLink } from "@/components/ui/pagination"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuGroup, DropdownMenuCheckboxItem, DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu"
 import { Button } from "@/components/ui/button"
