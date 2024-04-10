@@ -25,7 +25,8 @@ async function checkAdminAccess(request: NextRequest) {
             url.pathname = '/'
             return NextResponse.redirect(url, { status: 302 });
         } else {
-            url.pathname = '/login'
+            url.pathname = `/login`
+            url.searchParams.set("redirect", request.nextUrl.pathname)
             return NextResponse.redirect(url, { status: 302 });
         }
     }
@@ -33,8 +34,5 @@ async function checkAdminAccess(request: NextRequest) {
 }
 
 export async function middleware(request: NextRequest) {
-    let response = NextResponse.next();
-    response = await checkSession(request) ?? response;
-    response = await checkAdminAccess(request) ?? response;
-    return response;
+    return await checkAdminAccess(request) ?? await checkSession(request) ?? NextResponse.next();
 }

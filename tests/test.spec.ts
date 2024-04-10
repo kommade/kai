@@ -47,29 +47,18 @@ test('purchase process', async ({ page, browserName }) => {
 });
 
 test('login admin', async ({ page }) => {
-    test.fixme(true, 'Needs to be updated with the new admin page')
     await page.goto('./');
     await page.getByLabel('Main').getByRole('link').nth(3).click();
     await page.getByPlaceholder('Email').fill(process.env.WEBSITE_ADMIN_EMAIL!);
     await page.getByPlaceholder('Password').fill(process.env.WEBSITE_ADMIN_PASSWORD!);
     await page.getByRole('button', { name: 'Login' }).click();
     await page.waitForURL('./dashboard');
-    await expect(page.getByText('OrdersViewPending 2Shipped')).toBeVisible();await expect(page.getByText('DisputesViewThere are 0')).toBeVisible();
-    await expect(page.getByText('BalanceViewSGD')).toBeVisible();
-    await expect(page.getByText('ActionsEdit productsNew')).toBeVisible();
-    await page.locator('div').filter({ hasText: /^OrdersView$/ }).getByRole('button').click();
-    await page.waitForURL('./dashboard/orders');
-    await page.locator('body > main > div > section > div > div > div.rounded-md.border > div > table > tbody > tr:nth-child(1)').getByRole('button').click();
-    await expect(page.getByLabel('Open menu')).toBeVisible();
-    await page.getByRole('menuitem', { name: 'View order' }).click();
-    await page.waitForURL('./dashboard/orders/1');
-    await expect(page.getByRole('heading', { name: 'Payment' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Customer' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Shipping' })).toBeVisible();
+    await expect(page.getByText('OrdersView')).toBeVisible();
+    await expect(page.getByText('DisputesView')).toBeVisible();
+    await expect(page.getByText('BalanceView')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Actions' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Update status' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'View invoice' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'View payment' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Cancel and Refund' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Order Summary' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Edit products' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'New product' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'User accounts' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'New discount' })).toBeVisible();
 });
