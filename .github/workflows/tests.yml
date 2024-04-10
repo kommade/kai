@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NODE_ENV: test
-      UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
-      UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
       NEXT_PUBLIC_URL: ${{ secrets.NEXT_PUBLIC_URL }}
       STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
       WEBSITE_ADMIN_EMAIL: ${{ secrets.WEBSITE_ADMIN_EMAIL }}
