@@ -9,9 +9,8 @@ import { useRouter } from "next/navigation";
 import React, { useEffect } from 'react'
 import { zodValidateOrder } from "@/lib/zod";
 import { z } from "zod";
-import { getAllOrders, getNumberOfOrders } from "@/functions/database";
 
-const OrdersPage = ({ auth, data, n }: { auth: Kai.UserResult, data: Kai.Order[], n: number }) => {
+const OrdersPage = ({ auth, data }: { auth: Kai.UserResult, data: Kai.Order[] }) => {
     const { toast } = useToast();
     const orders: z.infer<typeof zodValidateOrder>[] = data.map(order => {
         try {
@@ -32,10 +31,6 @@ const OrdersPage = ({ auth, data, n }: { auth: Kai.UserResult, data: Kai.Order[]
         }
     }, [auth.loggedIn])
 
-    const handleNext = async (cursor: number) => await getAllOrders(cursor, 5);
-
-    const handleCanNextPage = (cursor: number) => cursor < n;
-
     return (
         <main className="flex flex-col items-center justify-between min-h-screen">
             <div className="w-full h-fit min-h-[100vh] min-w-[1024px] relative flex flex-col">
@@ -43,7 +38,7 @@ const OrdersPage = ({ auth, data, n }: { auth: Kai.UserResult, data: Kai.Order[]
                 <section className="mt-[80px] min-h-[calc(100vh_-_140px)] w-full h-fit flex flex-col justify-start items-center py-6">
                     <div className="w-[90%] justify-between flex flex-col gap-4">
                         <h2 className="text-center w-fit text-[24px]">ORDERS</h2>
-                        <OrdersComponent data={orders} next={handleNext} canNextPage={handleCanNextPage}/>
+                        <OrdersComponent data={orders}/>
                     </div>
                 </section>
                 <FooterComponent />

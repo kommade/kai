@@ -6,11 +6,10 @@ import { getAllOrders, getNumberOfOrders } from "@/functions/database";
 
 const OrdersPageWrapper = async () => {
     const auth = await ifLoggedInGetUser();
-    const orders = await getAllOrders(1, 5);
-    const n = await getNumberOfOrders();
+    const orders = await getAllOrders();
     return (
         <Suspense fallback={<LoadingComponent/>}>
-            <OrdersPage auth={auth} data={orders} n={n} />
+            <OrdersPage auth={auth} data={orders} />
         </Suspense>
     )
 }

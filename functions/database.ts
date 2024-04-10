@@ -563,41 +563,19 @@ export const getUserOrdersByEmail: (email: string) => Promise<Kai.Order[]> = cac
     });
 }, undefined, { revalidate: 1 })
 
-export const getAllOrders: (cursor?: number, take?: number) => Promise<Kai.Order[]> = cache(async (cursor?: number, take?: number) => {
-    if (cursor && take) {
-        return await prisma.orders.findMany({
-            cursor: {
-                order_id: cursor ?? 1,
-            },
-            take: take,
-            include: {
-                user: true,
-            },
-            orderBy: {
-                order_id: "asc",
-            },
-            cacheStrategy: {
-                swr: process.env.NODE_ENV === 'production' ? 30 : 0,
-            }
-        });
-    } else {
-        return await prisma.orders.findMany({
-            include: {
-                user: true,
-            },
-            orderBy: {
-                order_id: "asc",
-            },
-            cacheStrategy: {
-                swr: process.env.NODE_ENV === 'production' ? 30 : 0,
-            }
-        });
-    }
+export const getAllOrders: () => Promise<Kai.Order[]> = cache(async () => {
+    return await prisma.orders.findMany({
+        include: {
+            user: true,
+        },
+        orderBy: {
+            order_id: "asc",
+        },
+        cacheStrategy: {
+            swr: process.env.NODE_ENV === 'production' ? 30 : 0,
+        }
+    });
 }, undefined, { revalidate: 10 })
-
-export const getNumberOfOrders = async () => {
-    return await prisma.orders.count();
-}
 
 export const cancelOrder = async (order_id: number, refund_id: string) => {
     try {

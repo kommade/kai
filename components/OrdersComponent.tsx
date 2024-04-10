@@ -15,14 +15,12 @@ import { ChangeOrderStatusComponent, ChangeOrderStatusDialogs, OrderStatusMap, P
 import { zodValidateOrder } from "@/lib/zod";
 import { z } from "zod";
 
-const OrdersComponent = ({ data, next, canNextPage }: { data?: Kai.Order[], next?: (cursor: number) => Promise<Kai.Order[]>, canNextPage?: (cursor: number) => boolean }) => {
+const OrdersComponent = ({ data }: { data?: Kai.Order[] }) => {
     const {toast} = useToast();
     const router = useRouter();
     const [orders, setOrders] = React.useState<Kai.Order[]>(data || []);
     const [cancelOrderDialogOpen, setCancelOrderDialogOpen] = React.useState(false);
     const [shippingDialogOpen, setShippingDialogOpen] = React.useState(false);
-    
-    
 
     const columns: ColumnDef<Expand<Kai.Order>>[] = [
         {
@@ -118,7 +116,7 @@ const OrdersComponent = ({ data, next, canNextPage }: { data?: Kai.Order[], next
                                         <DropdownMenuSubContent className="bg-kai-white">
                                             <ChangeOrderStatusComponent
                                                 data={row.original}
-                                                revalidate={async () => setOrders(await getAllOrders(1, table.getState().pagination.pageIndex * 5))}
+                                                revalidate={async () => setOrders(await getAllOrders())}
                                                 order_id={order_id}
                                                 setCancelOrderDialogOpen={setCancelOrderDialogOpen}
                                                 setShippingDialogOpen={setShippingDialogOpen}
@@ -152,7 +150,7 @@ const OrdersComponent = ({ data, next, canNextPage }: { data?: Kai.Order[], next
                             setShippingDialogOpen={setShippingDialogOpen}
                             order_id={order_id}
                             payment_id={payment_id}
-                            revalidate={async () => setOrders(await getAllOrders(1, table.getState().pagination.pageIndex * 5))}
+                            revalidate={async () => setOrders(await getAllOrders())}
                         />
                     </>
                 )
@@ -162,7 +160,7 @@ const OrdersComponent = ({ data, next, canNextPage }: { data?: Kai.Order[], next
     
     return (
         <>
-            <DataTable columns={columns} data={orders} next={next} canNextPage={canNextPage} />
+            <DataTable columns={columns} data={orders} />
         </>
     );
 }

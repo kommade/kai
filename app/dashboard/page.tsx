@@ -1,6 +1,5 @@
 import React, { Suspense } from 'react'
 import DashboardPage from "./page-client"
-import { ifLoggedInGetUser } from "@/functions/auth";
 import { getAllOrders } from "@/functions/database";
 import LoadingComponent from "@/components/LoadingComponent";
 import { getDisputes, getBalance } from "@/functions/stripe";

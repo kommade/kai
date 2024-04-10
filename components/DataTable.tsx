@@ -6,25 +6,20 @@ import { useState } from "react";
 import { Button } from "./ui/button";
 
 interface DataTableProps<TData, TValue> {
-    columns: ColumnDef<TData, TValue>[],
-    data: TData[],
-    emptyMessage?: string,
-    next?: (cursor: number) => Promise<TData[]>,
-    canNextPage?: (cursor: number) => boolean
+    columns: ColumnDef<TData, TValue>[]
+    data: TData[]
+    emptyMessage?: string
 }
 
 export function DataTable<TData, TValue>({
     columns,
     data,
-    emptyMessage,
-    next,
-    canNextPage,
-}: DataTableProps<TData, TValue> & { }) {
+    emptyMessage
+}: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = useState<SortingState>([])
     const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 5 })
-    const [tableData, setData] = useState(data);
     const table = useReactTable({
-        data: (next && canNextPage) ? tableData : data,
+        data,
         columns,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
@@ -95,15 +90,8 @@ export function DataTable<TData, TValue>({
                 <Button
                     variant="outline"
                     size="sm"
-                    onClick={async () => {
-                        if (next) {
-                            await next(table.getState().pagination.pageIndex).then((data) => setData((prev) => prev.concat(data)))
-                        }
-                        table.nextPage()
-                    }}
-                    disabled={
-                        !table.getCanNextPage() || (canNextPage && !canNextPage(table.getState().pagination.pageIndex * 5))
-                    }
+                    onClick={() => table.nextPage()}
+                    disabled={!table.getCanNextPage()}
                 >
                     Next
                 </Button>
