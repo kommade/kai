@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 
 const HeaderComponent = () => {
     const [user, setUser] = React.useState<Kai.User | null>(null);
+    const router = useRouter();
     useEffect(() => {
         const fetchLoggedIn = async () => {
             const auth = await ifLoggedInGetUser();
@@ -19,6 +20,77 @@ const HeaderComponent = () => {
         }
         fetchLoggedIn();
     }, [])
+
+    const profileMenuContent = (user: Kai.User | null) => {
+        if (user?.role === "admin") {
+            return (
+                <ul className="w-[148px] bg-kai-white text-kai-blue shadow mt-2 p-2 rounded-md">
+                    <li className="flex h-fit py-2 font-bold rounded-md pl-2">
+                        <h3>Hello {user.name}!</h3>
+                    </li>
+                    <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md">
+                        <Link href={"/dashboard"} legacyBehavior passHref>
+                            <NavigationMenuLink className="pl-2">
+                                <h3>Admin Dashboard</h3>
+                            </NavigationMenuLink>
+                        </Link>
+                    </li>
+                    <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md" >
+                        <Link href={"/dashboard/orders"} legacyBehavior passHref>
+                            <NavigationMenuLink className="pl-2"><h3>View Orders</h3></NavigationMenuLink>
+                        </Link>
+                    </li>
+                    <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md" >
+                        <Link href={"/"} legacyBehavior passHref>
+                            <NavigationMenuLink className="pl-2"><h3>View Users</h3></NavigationMenuLink>
+                        </Link>
+                    </li>
+                    <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md" >
+                        <NavigationMenuLink onClick={() => { logout(); router.refresh()}} className="pl-2"><h3>Sign Out</h3></NavigationMenuLink>
+                    </li>
+                </ul>
+            )
+        } else if (user?.role === "user") {
+            return (
+                <ul className="w-[148px] bg-kai-white text-kai-blue shadow mt-2 p-2 rounded-md">
+                    <li className="flex h-fit py-2 font-bold rounded-md pl-2">
+                        <h3>Hello {user.name}!</h3>
+                    </li>
+                    <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md" >
+                        <Link href={"/profile"} legacyBehavior passHref>
+                            <NavigationMenuLink className="pl-2"><h3>View Profile</h3></NavigationMenuLink>
+                        </Link>
+                    </li>
+                    <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md" >
+                        <Link href={"/profile/orders"} legacyBehavior passHref>
+                            <NavigationMenuLink className="pl-2"><h3>View My Orders</h3></NavigationMenuLink>
+                        </Link>
+                    </li>
+                    <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md" >
+                        <NavigationMenuLink onClick={() => { logout(); router.refresh() }} className="pl-2"><h3>Logout</h3></NavigationMenuLink>
+                    </li>
+                </ul>
+            )
+        } else {
+            return (
+                <ul className="w-[148px] bg-kai-white text-kai-blue shadow mt-2 p-2 rounded-md">
+                    <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md">
+                        <Link href={"/login"} legacyBehavior passHref>
+                            <NavigationMenuLink className="pl-2">
+                                <h3>Login</h3>
+                            </NavigationMenuLink>
+                        </Link>
+                    </li>
+                    <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md" >
+                        <Link href={"/dashboard/orders"} legacyBehavior passHref>
+                            <NavigationMenuLink className="pl-2"><h3>Create account</h3></NavigationMenuLink>
+                        </Link>
+                    </li>
+                </ul>
+            )
+        }
+    
+    }
 
     return (
         <header className="fixed top-0 left-0 w-full h-[80px] bg-kai-white text-kai-blue shadow z-[10]">
@@ -100,76 +172,6 @@ const HeaderComponent = () => {
     )
 }
 
-const profileMenuContent = (user: Kai.User | null) => {
-    const router = useRouter();
-    if (user?.role === "admin") {
-        return (
-            <ul className="w-[148px] bg-kai-white text-kai-blue shadow mt-2 p-2 rounded-md">
-                <li className="flex h-fit py-2 font-bold rounded-md pl-2">
-                    <h3>Hello {user.name}!</h3>
-                </li>
-                <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md">
-                    <Link href={"/dashboard"} legacyBehavior passHref>
-                        <NavigationMenuLink className="pl-2">
-                            <h3>Admin Dashboard</h3>
-                        </NavigationMenuLink>
-                    </Link>
-                </li>
-                <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md" >
-                    <Link href={"/dashboard/orders"} legacyBehavior passHref>
-                        <NavigationMenuLink className="pl-2"><h3>View Orders</h3></NavigationMenuLink>
-                    </Link>
-                </li>
-                <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md" >
-                    <Link href={"/"} legacyBehavior passHref>
-                        <NavigationMenuLink className="pl-2"><h3>View Users</h3></NavigationMenuLink>
-                    </Link>
-                </li>
-                <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md" >
-                    <NavigationMenuLink onClick={() => { logout(); router.refresh()}} className="pl-2"><h3>Sign Out</h3></NavigationMenuLink>
-                </li>
-            </ul>
-        )
-    } else if (user?.role === "user") {
-        return (
-            <ul className="w-[148px] bg-kai-white text-kai-blue shadow mt-2 p-2 rounded-md">
-                <li className="flex h-fit py-2 font-bold rounded-md pl-2">
-                    <h3>Hello {user.name}!</h3>
-                </li>
-                <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md" >
-                    <Link href={"/profile"} legacyBehavior passHref>
-                        <NavigationMenuLink className="pl-2"><h3>View Profile</h3></NavigationMenuLink>
-                    </Link>
-                </li>
-                <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md" >
-                    <Link href={"/profile/orders"} legacyBehavior passHref>
-                        <NavigationMenuLink className="pl-2"><h3>View My Orders</h3></NavigationMenuLink>
-                    </Link>
-                </li>
-                <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md" >
-                    <NavigationMenuLink onClick={() => { logout(); router.refresh() }} className="pl-2"><h3>Logout</h3></NavigationMenuLink>
-                </li>
-            </ul>
-        )
-    } else {
-        return (
-            <ul className="w-[148px] bg-kai-white text-kai-blue shadow mt-2 p-2 rounded-md">
-                <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md">
-                    <Link href={"/login"} legacyBehavior passHref>
-                        <NavigationMenuLink className="pl-2">
-                            <h3>Login</h3>
-                        </NavigationMenuLink>
-                    </Link>
-                </li>
-                <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md" >
-                    <Link href={"/dashboard/orders"} legacyBehavior passHref>
-                        <NavigationMenuLink className="pl-2"><h3>Create account</h3></NavigationMenuLink>
-                    </Link>
-                </li>
-            </ul>
-        )
-    }
 
-}
 
 export default HeaderComponent
