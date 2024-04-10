@@ -1,7 +1,6 @@
-"use client"
+"use client";
 
-import Image from "next/image"
-import React, { use, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import FooterComponent from "@/components/FooterComponent"
 import HeaderComponent from "@/components/HeaderComponent"
 import {
@@ -10,7 +9,7 @@ import {
 } from "@/components/ui/command"
 import { ProductGrid} from "@/components/ProductGrid"
 import Kai from "@/lib/types"
-import { getProducts, searchProducts } from "@/functions/database"
+import { getProductsById, searchForProducts } from "@/functions/database"
 import { Pagination, PaginationContent, PaginationItem, PaginationLink } from "@/components/ui/pagination"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuGroup, DropdownMenuCheckboxItem, DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu"
 import { Button } from "@/components/ui/button"
@@ -19,18 +18,18 @@ import { useRouter, useSearchParams } from "next/navigation"
   
 type Checked = DropdownMenuCheckboxItemProps["checked"]
 
-const ProductPage = ({ products, totalPages, keys, collections }: { products: Kai.ProductData[], totalPages: number, keys: string[], collections: string[] }) => {
+const ProductPage = ({ products, totalPages, ids, collections }: { products: Kai.ProductWithCollection[], totalPages: number, ids: string[], collections: Kai.Collection[] }) => {
     const itemsPerPage = 12;
-    const [productKeys, setProductKeys] = useState<string[]>(keys)
+    const [productIds, setProductIds] = useState<string[]>(ids)
     const [searchValue, setSearchValue] = useState("")
-    const [productList, setProductList] = useState<Kai.ProductData[]>(products.concat(Array(productKeys.length - itemsPerPage > 0 ? productKeys.length - itemsPerPage : 0).fill(undefined)))
-    const [originalProductList, setOriginalProductList] = useState<Kai.ProductData[]>(products)
+    const [productList, setProductList] = useState<Kai.ProductWithCollection[]>(products.concat(Array(productIds.length - itemsPerPage > 0 ? productIds.length - itemsPerPage : 0).fill(undefined)))
+    const [originalProductList, setOriginalProductList] = useState<Kai.ProductWithCollection[]>(products)
     const [currentPage, setCurrentPage] = useState(1);
     const searchParams = useSearchParams();
     const [earringSelected, setEarringSelected] = React.useState<Checked>(searchParams.get("type")?.split(" ").includes("earrings") || false)
     const [necklaceSelected, setNecklaceSelected] = React.useState<Checked>(searchParams.get("type")?.split(" ").includes("necklace") || false)
     const [setsSelected, setSetsSelected] = React.useState<Checked>(searchParams.get("type")?.split(" ").includes("sets") || false)
-    const [selectedCollection, setSelectedCollection] = React.useState<string>(searchParams.get("collection") === "recent" ? collections[0] : searchParams.get("collection") || "") 
+    const [selectedCollection, setSelectedCollection] = React.useState<string>(searchParams.get("collection") === "recent" ? collections.sort((a, b) => a.created_at.getTime() - b.created_at.getTime())[0].name : searchParams.get("collection") || "") 
     const router = useRouter();
 
     useEffect(() => {
@@ -38,27 +37,27 @@ const ProductPage = ({ products, totalPages, keys, collections }: { products: Ka
         const handleDataChange = async (page: number = 1) => {
             // if any of the products on the page chosen are undefined in the list, fetch them
             if (productList.slice((page - 1) * itemsPerPage, page * itemsPerPage).some((product) => product === undefined)){
-                const products = await getProducts(productKeys.slice((page - 1) * itemsPerPage, page * itemsPerPage));
-                if (!products.success) {
-                    console.error('Error fetching products:', products.message);
+                const products = await getProductsById(productIds.slice((page - 1) * itemsPerPage, page * itemsPerPage));
+                if (products.length === 0) {
+                    console.error('Error fetching products');
                     return;
                     // show a pop up and error screen
                 }
                 // if the data fetched is less than the itemsPerPage, we are on the last page and we need to fill the rest of the data with null
                 // so that we know there is no more data to fetch
-                if (products.data!.length < itemsPerPage) {
+                if (products.length < itemsPerPage) {
                     setProductList(
                         productList
                             .slice(0, (page - 1) * itemsPerPage)
-                            .concat(products.data!)
-                            .concat(Array(itemsPerPage - products.data!.length).fill(null))
+                            .concat(products)
+                            .concat(Array(itemsPerPage - products.length).fill(null))
                             );
                 } else {
                     // otherwise we just fill in the missing data into the list
                     setProductList(
                         productList
                         .slice(0, (page - 1) * itemsPerPage)
-                        .concat(products.data!)
+                        .concat(products)
                             .concat(productList.slice(page * itemsPerPage, productList.length))
                     );
                 }
@@ -66,7 +65,7 @@ const ProductPage = ({ products, totalPages, keys, collections }: { products: Ka
             setCurrentPage(page);
         }
         handleDataChange();
-    }, [productList, productKeys]);
+    }, [productList, productIds]);
 
     useEffect(() => {
         const handleFilterChange = () => {
@@ -102,11 +101,11 @@ const ProductPage = ({ products, totalPages, keys, collections }: { products: Ka
 
     useEffect(() => {
         const handleSearchParams = () => {
-            const collection = searchParams.get("collection");
+            const collection_name = searchParams.get("collection");
             const type = searchParams.get("type")?.split(" ");
             let productList = originalProductList;
-            if (collection) {
-                productList = productList.filter((product) => product.collection === collection);
+            if (collection_name) {
+                productList = productList.filter((product) => product.collection.name === collection_name);
             }
             if (type) {
                 productList = productList.filter((product) => type.includes(product.type))
@@ -114,7 +113,7 @@ const ProductPage = ({ products, totalPages, keys, collections }: { products: Ka
             setProductList(productList);
         }
         handleSearchParams();
-    }, [searchParams, productKeys, originalProductList]);
+    }, [searchParams, productIds, originalProductList]);
 
     // searchbar
     const handleValueChange = (value: string) => {
@@ -123,14 +122,12 @@ const ProductPage = ({ products, totalPages, keys, collections }: { products: Ka
     const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") {
             if (searchValue === "") {
-                return;
+                setProductIds(ids);
+                setProductList(originalProductList);
             }
-            const result = await searchProducts(searchValue);
-            setProductKeys(result);
+            const result = await searchForProducts(searchValue);
+            setProductIds(result);
             setProductList(Array(result.length).fill(undefined));
-        } else if (e.key === "Backspace") {
-            setProductKeys(keys);
-            setProductList(originalProductList);
         }
     }
 
@@ -201,13 +198,13 @@ const ProductPage = ({ products, totalPages, keys, collections }: { products: Ka
                                         {
                                             collections.map((collection) => (
                                                 <DropdownMenuItem
-                                                    key={collection}
+                                                    key={collection.id}
                                                     className="flex items-center justify-start gap-2 p-2 hover:ring-0 hover:bg-kai-grey"
                                                     onClick={() => {
-                                                        setSelectedCollection(collection);
+                                                        setSelectedCollection(collection.name);
                                                     }}
                                                 >
-                                                    {collection}
+                                                    {collection.name}
                                                 </DropdownMenuItem>
                                             ))
                                         }

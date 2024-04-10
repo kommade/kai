@@ -1,34 +1,46 @@
 "use server";
 
-// this file is isolated as it uses bcrypt which is not supported on the edge
-
 import Kai from "@/lib/types";
-import bcrypt from "bcrypt";
-import { Redis } from '@upstash/redis'
-import { changeSessionId, getSessionId } from "./sessions";
+import bcrypt from "bcryptjs";
+import { getSessionId } from "./sessions-edge";
+import { changeSessionIdAfterLogin } from "./sessions-edge";
 import { z } from "zod";
-
-const redis = Redis.fromEnv();
+import { getUserFromEmail } from "./database-edge";
+import { updateUserLastLogin } from "./database-edge";
+import { userExists } from "./database-edge";
 
 export const login = async (email: string, password: string) => {
-    const user = await redis.hget("users", email) as Kai.User | null;
+    const user = await userExists(email);
     if (user === null) {
         return { success: false, data: "User not found" };
     }
     if (bcrypt.compareSync(password, user.hash)) {
-        await redis.hset("users", { [email]: JSON.stringify({ ...user, last: new Date().toISOString() }) });
-        await changeSessionId(email, true);
+        await updateUserLastLogin(user.id);
+        await changeSessionIdAfterLogin(email);
         return { success: true, data: user };
     } else {
         return { success: false, data: "Incorrect password" };
     }
 };
 
+export const isLoggedIn = async (): Promise<boolean> => {
+    const session = await getSessionId();
+    if (session) {
+        if (z.string().email().safeParse(session).success) {
+            const user = await userExists(session);
+            if (user) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 export const ifLoggedInGetUser = async (): Promise<Kai.UserResult> => {
     const session = await getSessionId();
     if (session) {
         if (z.string().email().safeParse(session).success) {
-            const user = await redis.hget("users", session) as Kai.User | null;
+            const user = await getUserFromEmail(session);
             if (user) {
                 return { loggedIn: true, user: user };
             } else {

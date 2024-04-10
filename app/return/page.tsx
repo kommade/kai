@@ -1,6 +1,5 @@
 import React, { Suspense } from 'react'
 import ReturnPage from "./page-client"
-import MessageComponent from "@/components/MessageComponent"
 import { getCheckoutSession } from "@/functions/stripe"
 import Kai from "@/lib/types"
 import LoadingComponent from "@/components/LoadingComponent"
@@ -11,14 +10,14 @@ const ReturnPageWrapper = async ({
     searchParams: { [key: string]: string | string[] | undefined }
     }
 ) => {
-    const session_id = searchParams.session_id as string | undefined;
+    const checkoutSessionId = searchParams.session_id as string | undefined;
     let checkoutSession: undefined | Kai.CheckoutSession;
-    if (session_id) {
-        checkoutSession = await getCheckoutSession(session_id);
+    if (checkoutSessionId) {
+        checkoutSession = await getCheckoutSession(checkoutSessionId);
     }
     return (
         <Suspense fallback={<LoadingComponent/>}>
-            <ReturnPage session={checkoutSession} />
+            <ReturnPage checkoutSession={checkoutSession} />
         </Suspense>
     )
 }

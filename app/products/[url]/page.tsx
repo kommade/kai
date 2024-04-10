@@ -1,20 +1,21 @@
 import React, { Suspense } from 'react'
-import { getProductKeyFromId, getProducts } from "@/functions/database"
+import { getProductByUrl } from "@/functions/database"
 import ProductSpecificPage from './page-client';
 import LoadingComponent from "@/components/LoadingComponent";
 import MessageComponent from "@/components/MessageComponent";
+import { isLoggedIn } from "@/functions/auth";
 
-const ProductSpecificPageWrapper = async ({ params }: { params: { id: string } }) => {
-    const productKey = await getProductKeyFromId(params.id);
-    const product = await getProducts([productKey]);
+const ProductSpecificPageWrapper = async ({ params }: { params: { url: string } }) => {
+    const product = await getProductByUrl(params.url);
+    const loggedIn = await isLoggedIn();
 
-    if (!product.success) {
+    if (!product) {
         return <MessageComponent message="Something went wrong"/>;
     }
 
     return (
         <Suspense fallback={<LoadingComponent/>}>
-            <ProductSpecificPage product={product.data![0]} />
+            <ProductSpecificPage product={product} loggedIn={loggedIn} />
         </Suspense>
     );
 };

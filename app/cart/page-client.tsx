@@ -8,7 +8,7 @@ import Kai from "@/lib/types"
 
 import React, { useEffect } from 'react'
 
-const CartPage = ({ data, expired }: { data?: Kai.Cart, expired: boolean }) => {
+const CartPage = ({ data, expired, loggedIn }: { data: Kai.CartWithProducts | null, expired: boolean, loggedIn: boolean }) => {
     const { toast } = useToast();
     useEffect(() => {
         if (expired) {
@@ -19,8 +19,16 @@ const CartPage = ({ data, expired }: { data?: Kai.Cart, expired: boolean }) => {
                     duration: 3000
                 }
             );
+        } else if (!data) {
+            toast(
+                {
+                    description: "There was an error fetching your cart. Please try again later.",
+                    variant: "destructive",
+                    duration: 3000
+                }
+            );
         }
-    }, []);    
+    }, [data, expired]);    
 
     return (
         <main className="flex flex-col items-center justify-between min-h-screen">
@@ -29,7 +37,7 @@ const CartPage = ({ data, expired }: { data?: Kai.Cart, expired: boolean }) => {
                 <section className="mt-[80px] min-h-[calc(100vh_-_140px)] w-full h-fit flex flex-col justify-start items-center py-6">
                     <div className="w-[90%] justify-between flex flex-col gap-4">
                         <h2 className="text-center w-fit text-[24px]">CART</h2>
-                        <CartComponent data={data}/>
+                        <CartComponent data={data} loggedIn={loggedIn} />
                     </div>
                 </section>
                 <FooterComponent />

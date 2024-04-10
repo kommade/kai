@@ -1,3 +1,5 @@
+"use client"
+
 import React from 'react';
 import { PackageSearch, PackageIcon, PackageCheck, PackageX, RotateCcw, AlertCircle, Ban, CircleEllipsis } from "lucide-react"; 
 import { Check, XIcon } from "lucide-react";
@@ -12,12 +14,20 @@ import { InputShippingDetailsComponent } from "./InputShippingDetailsComponent";
 import { refundPayment } from "@/functions/stripe";
 
 export const orderStatusMap = {
-    "pending": <span className="flex gap-2 w-full  justify-between rounded-md p-1 px-2 bg-kai-yellow/30"><h3 className="h-[16.67px] text-kai-yellow ">Pending</h3> <PackageSearch className="stroke-kai-yellow mx-1" width={16.67} height={16.67}/></span>,
-    "shipped": <span className="flex gap-2 w-full  justify-between rounded-md p-1 px-2  bg-kai-blue/30"><h3 className="h-[16.67px] text-kai-blue">Shipped</h3> <PackageIcon className="stroke-kai-blue mx-1" width={16.67} height={16.67}/></span>,
-    "delivered": <span className="flex gap-2 w-full  justify-between rounded-md p-1 px-2  bg-kai-green/30"><h3 className="h-[16.67px] text-kai-green ">Delivered</h3> <PackageCheck className="stroke-kai-green mx-1" width={16.67} height={16.67}/></span>,
-    "cancelled": <span className="flex gap-2 w-full  justify-between rounded-md p-1 px-2  bg-kai-red/30"><h3 className="h-[16.67px] text-kai-red ">Cancelled</h3> <PackageX className="stroke-kai-red mx-1" width={16.67} height={16.67} /></span>,
-    "refunded": <span className="flex gap-2 w-full  justify-between rounded-md p-1 px-2  bg-kai-red/30"><h3 className="h-[16.67px] text-kai-red ">Refunded</h3> <RotateCcw className="stroke-kai-red mx-1" width={16.67} height={16.67} /></span>
+    "pending": <span className="flex gap-2 w-full justify-between rounded-md p-1 px-2 bg-kai-yellow/30"><h3 className="h-[16.67px] text-kai-yellow ">Pending</h3> <PackageSearch className="stroke-kai-yellow mx-1" width={16.67} height={16.67}/></span>,
+    "shipped": <span className="flex gap-2 w-full justify-between rounded-md p-1 px-2  bg-kai-blue/30"><h3 className="h-[16.67px] text-kai-blue">Shipped</h3> <PackageIcon className="stroke-kai-blue mx-1" width={16.67} height={16.67}/></span>,
+    "delivered": <span className="flex gap-2 w-full justify-between rounded-md p-1 px-2  bg-kai-green/30"><h3 className="h-[16.67px] text-kai-green ">Delivered</h3> <PackageCheck className="stroke-kai-green mx-1" width={16.67} height={16.67}/></span>,
+    "cancelled": <span className="flex gap-2 w-full justify-between rounded-md p-1 px-2  bg-kai-red/30"><h3 className="h-[16.67px] text-kai-red ">Cancelled</h3> <PackageX className="stroke-kai-red mx-1" width={16.67} height={16.67} /></span>,
+    "refunded": <span className="flex gap-2 w-full justify-between rounded-md p-1 px-2  bg-kai-red/30"><h3 className="h-[16.67px] text-kai-red ">Refunded</h3> <RotateCcw className="stroke-kai-red mx-1" width={16.67} height={16.67} /></span>
 };
+
+const orderStatusColorMap = {
+    "pending": "kai-yellow",
+    "shipped": "kai-blue",
+    "delivered": "kai-green",
+    "cancelled": "kai-red",
+    "refunded": "kai-red"
+}
 
 interface OrderStatusMapProps {
     status: keyof typeof orderStatusMap;
@@ -52,8 +62,8 @@ export const ChangeOrderStatusComponent = ({
     setShippingDialogOpen,
     cancel_disabled = false
 }: {
-        data: Kai.Order,
-        order_id: string,
+        data: Kai.Order | Kai.OrderWithProducts,
+        order_id: number,
         revalidate: () => void,
         setCancelOrderDialogOpen: (open: boolean) => void,
         setShippingDialogOpen: (open: boolean) => void,
@@ -61,7 +71,7 @@ export const ChangeOrderStatusComponent = ({
     }
 ) => {
     const { toast } = useToast();
-    const changeStatus = async (id: string, status: Kai.Order['order_status']) => {
+    const changeStatus = async (id: number, status: Kai.Order['order_status']) => {
         const res = await changeOrderStatus(id, status);
         if (res.success) {
             toast({ description: "Order status updated", duration: 1000, variant: "success" })
@@ -109,18 +119,18 @@ export const ChangeOrderStatusDialogs = ({
     setCancelOrderDialogOpen: (open: boolean) => void,
     shippingDialogOpen: boolean,
     setShippingDialogOpen: (open: boolean) => void,
-    order_id: string,
+    order_id: number,
     payment_id: string,
     revalidate: () => void
 }) => {
     const { toast } = useToast();
-    const handleCancelOrder = async (order_id: string, payment_id: string) => {
+    const handleCancelOrder = async (order_id: number, payment_id: string) => {
         const refund = await refundPayment(payment_id);
         if (refund === "error") {
             toast({ description: "Error refunding payment", duration: 2000, variant: "destructive" })
             return;
         }
-        const res = await cancelOrder(order_id, refund.id, refund.status!);
+        const res = await cancelOrder(order_id, refund.id);
         if (res.success) {
             toast({ description: "Order cancelled successfully", duration: 2000, variant: "success" })
             revalidate();
@@ -129,7 +139,7 @@ export const ChangeOrderStatusDialogs = ({
         }
     }
     
-    const handleSetShippingDetails = async (data: z.infer<typeof shippingFormSchema>, order_id: string) => {
+    const handleSetShippingDetails = async (data: z.infer<typeof shippingFormSchema>, order_id: number) => {
         const res = await setShippingDetails(order_id, data);
         if (res.success) {
             toast({ description: "Shipping details added", duration: 1000, variant: "success" });
@@ -176,16 +186,18 @@ export const OrderStatusesDisplay = ({ orders }: { orders: Kai.Order[] }) => {
     });
 
     return (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2">
             {
                 Object.entries(statusCount).map(([status, count]) => {
                     return (
-                        <div key={status} className={`flex flex-row gap-2 px-3 rounded-md bg-kai-gray/10 ${status === "refunded" ? "col-span-2 w-full justify-center": "w-fit"}`}>
+                        <div key={status} className={"flex flex-row gap-2 px-3 rounded-md bg-kai-gray/10 w-fit"}>
                             <div className="w-[110px]">
                                 {orderStatusMap[status as keyof typeof orderStatusMap]}
                             </div>
                             <div className="flex items-center ml-2">
-                                <h3 className="text-kai-gray">{count}</h3>
+                                <h3 className={`text-${orderStatusColorMap[status as keyof typeof orderStatusColorMap]}`}>
+                                    {count}
+                                </h3>
                             </div>
                         </div>
                     )

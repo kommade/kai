@@ -2,14 +2,12 @@
 
 import Kai from "@/lib/types";
 import { ColumnDef } from "@tanstack/react-table";
-import { Minus, Plus, XIcon } from "lucide-react";
 import React from 'react'
-import { Button } from "./ui/button";
 import Image from "next/image";
 import { DataTable } from "./DataTable";
 
 
-const CartComponent = ({ data }: { data: Kai.ProductInCart[] }) => {
+const OrderComponent = ({ data }: { data: Kai.ProductInCart[] }) => {
     const columns: ColumnDef<Kai.ProductInCart>[] = [
         {
             accessorKey: "product",
@@ -20,7 +18,7 @@ const CartComponent = ({ data }: { data: Kai.ProductInCart[] }) => {
                     <div className="flex items-center gap-3">
                         <Image src={product.image} alt={product.name} className="w-[50px] h-[50px] object-cover rounded-md" width={50} height={50} sizes="50px"/>
                         <div>
-                            <h3>{product.fullName}</h3>
+                            <h3>{product.name}</h3>
                             <p>{product.type.charAt(0).toUpperCase() + product.type.slice(1)}</p>
                         </div>
                     </div>
@@ -28,12 +26,13 @@ const CartComponent = ({ data }: { data: Kai.ProductInCart[] }) => {
             }
         },
         {
-            accessorKey: "product",
+            accessorKey: "selected_options",
             header: "Options",
             cell: ({ row }) => {
                 const product = row.getValue("product") as Kai.ProductInCart["product"];
-                const options = product.options as Kai.SelectedProductOptions;
-                return Object.values(options).join(", ");
+                const selected_options = row.getValue("selected_options") as Kai.ProductInCart["selected_options"];
+                const optionsList = product.options.map((option, index) => option.selection[selected_options[index]]);
+                return optionsList.join(", ");
             }
         },
         {
@@ -41,7 +40,7 @@ const CartComponent = ({ data }: { data: Kai.ProductInCart[] }) => {
             header: "Price",
             cell: ({ row }) => {
                 const product = row.getValue("product") as Kai.ProductInCart["product"];
-                const price = parseFloat(product.price);
+                const price = product.price;
                 const formatted = new Intl.NumberFormat("en-US", {
                     style: "currency",
                     currency: "SGD",
@@ -70,9 +69,9 @@ const CartComponent = ({ data }: { data: Kai.ProductInCart[] }) => {
     
     return (
         <>
-            <DataTable columns={columns} data={data} emptyMessage="No items in data."/>
+            <DataTable columns={columns} data={data} emptyMessage="No items in data." paginationEnabled={false} />
         </>
     );
 }
 
-export default CartComponent
+export default OrderComponent

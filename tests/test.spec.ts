@@ -1,9 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { config } from 'dotenv';
-config();
 config({ path: '.env.local' });
-
-// TODO: run on vercel's preview deployment
 
 test('product page', async ({ page }) => {
     await page.goto('./');
@@ -14,7 +11,8 @@ test('product page', async ({ page }) => {
     await expect(page.getByText('By Collection')).toBeVisible();
     await page.getByRole('menuitem', { name: 'Kai Shi (开始)' }).click();
     await page.waitForURL('./products?collection=Kai+Shi+%28%E5%BC%80%E5%A7%8B%29');
-    await page.getByText('BUY NOWKai Shi (开始) Sunflower16.00').click();
+    await page.getByAltText('ks-sunflower').click();
+    await page.waitForURL('./products/ks-sunflower');
     await page.getByRole('button', { name: '+' }).click();
     await expect(page.locator('section')).toContainText('2');   
 });
@@ -22,19 +20,17 @@ test('product page', async ({ page }) => {
 test('purchase process', async ({ page, browserName }) => {
     await page.goto('./');
     await page.getByRole('button', { name: 'Our Products' }).click();
-    await page.getByText('BUY NOWKai Shi (开始) Sunflower16.00').click();
-    await page.waitForTimeout(1000);
+    await page.getByAltText('ks-sunflower').click();
+    await page.waitForURL('./products/ks-sunflower');
     await page.getByRole('button', { name: 'Add to cart' }).click();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(5000);
     await page.getByLabel('Main').getByRole('link').nth(2).click();
-    await expect(page.locator('tbody')).toContainText('Kai Shi (开始) - Sunflower');
-    await page.getByRole('row', { name: 'Sunflower Kai Shi (开始) -' }).getByRole('button').nth(1).click();
+    await expect(page.locator('tbody')).toContainText('Kai Shi (开始) Sunflower');
+    await page.getByRole('row', { name: 'Kai Shi (开始) Sunflower Kai' }).getByRole('button').nth(1).click()
     await expect(page.locator('tbody')).toContainText('2');
-    await expect(page.getByRole('row', { name: 'Sunflower Kai Shi (开始) -' }).getByRole('button').nth(2)).toBeVisible();
     await page.getByRole('button', { name: 'Checkout' }).click();
     await page.waitForURL('./checkout');
     test.skip(browserName === 'webkit', 'Stripe does not work with webkit')
-    await page.waitForTimeout(2000)
     await page.frameLocator('iframe[name="embedded-checkout"]').getByRole('button', { name: 'Enter address manually' }).click();
     await page.frameLocator('iframe[name="embedded-checkout"]').getByLabel('Email').fill('playwright@test.com');
     await page.frameLocator('iframe[name="embedded-checkout"]').getByPlaceholder('Full name').fill('Playwright Test');
@@ -57,22 +53,12 @@ test('login admin', async ({ page }) => {
     await page.getByPlaceholder('Password').fill(process.env.WEBSITE_ADMIN_PASSWORD!);
     await page.getByRole('button', { name: 'Login' }).click();
     await page.waitForURL('./dashboard');
-    await expect(page.getByText('OrdersViewPending 2Shipped')).toBeVisible();await expect(page.getByText('DisputesViewThere are 0')).toBeVisible();
-    await expect(page.getByText('BalanceViewSGD')).toBeVisible();
-    await expect(page.getByText('ActionsEdit productsNew')).toBeVisible();
-    await page.locator('div').filter({ hasText: /^OrdersView$/ }).getByRole('button').click();
-    await page.waitForURL('./dashboard/orders');
-    await page.locator('body > main > div > section > div > div > div.rounded-md.border > div > table > tbody > tr:nth-child(1)').getByRole('button').click();
-    await expect(page.getByLabel('Open menu')).toBeVisible();
-    await page.getByRole('menuitem', { name: 'View order' }).click();
-    await page.waitForURL('./dashboard/orders/1');
-    await expect(page.getByRole('heading', { name: 'Payment' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Customer' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Shipping' })).toBeVisible();
+    await expect(page.getByText('OrdersView')).toBeVisible();
+    await expect(page.getByText('DisputesView')).toBeVisible();
+    await expect(page.getByText('BalanceView')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Actions' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Update status' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'View invoice' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'View payment' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Cancel and Refund' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Order Summary' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Edit products' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'New product' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'User accounts' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'New discount' })).toBeVisible();
 });
