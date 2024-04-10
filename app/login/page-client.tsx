@@ -36,6 +36,7 @@ const LoginPage = ({ session }: { session: string | null }) => {
         const checkSession = async () => {
             setSessionId(await getSessionIdOrNew());
         }
+        console.log(sessionId)
         if (sessionId) {
             if (z.string().email().safeParse(sessionId).success) {
                 router.push(redirect)
@@ -49,6 +50,7 @@ const LoginPage = ({ session }: { session: string | null }) => {
 
     async function onSubmit(data: z.infer<typeof loginFormSchema>) {  
         const res = await login(data.email, data.password);
+        console.log(res)
         if (res.success) {
             const user = res.data as Kai.User;
             if (user.role === "admin") {

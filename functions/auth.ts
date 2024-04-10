@@ -2,7 +2,7 @@
 
 import Kai from "@/lib/types";
 import bcrypt from "bcryptjs";
-import { getSessionId } from "./sessions-edge";
+import { changeSessionId, getSessionId } from "./sessions-edge";
 import { changeSessionIdAfterLogin } from "./sessions-edge";
 import { z } from "zod";
 import { getUserFromEmail } from "./database-edge";
@@ -49,4 +49,8 @@ export const ifLoggedInGetUser = async (): Promise<Kai.UserResult> => {
         }
     }
     return { loggedIn: false, user: "Not logged in" };
+}
+
+export const logout = async () => {
+    await changeSessionId();
 }

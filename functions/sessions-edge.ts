@@ -1,17 +1,29 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { changeCartId, createCartEdge } from "./database-edge";
+import { createCartEdge } from "./database-edge";
+import { crypto } from "@edge-runtime/ponyfill";
+import { SignJWT, jwtVerify } from "jose"
+import { JWTExpired } from "jose/errors";
+
+const jwtSecret = new TextEncoder().encode(process.env.JWT_SECRET as string);
 
 export async function createSessionIdEdge() {
-    const newSessionId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);;
+    const newSessionId = crypto.randomUUID();
     await createCartEdge(newSessionId, false);
     return newSessionId;
 }
 
 export async function setSessionId(sessionId: string, user: boolean = false) {
     const cookieStore = cookies();
-    cookieStore.set({ name: "session-id", value: sessionId, expires: process.env.NODE_ENV === "test" ? new Date(Date.now() + 10000) : user ? new Date(Date.now() + 1000 * 60 * 60 * 24) : new Date(Date.now() + 1000 * 60 * 60) });
+    const jwt = new SignJWT({ sessionId }).setProtectedHeader({ alg: "HS256" }).setExpirationTime(process.env.NODE_ENV === "test" ? "10s" : user ? "1d" : "1h");
+    cookieStore.set({
+        name: "session-id",
+        value: await jwt.sign(jwtSecret),
+        httpOnly: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+    });
     createCartEdge(sessionId, user);
 }
 export async function getSessionId() {
@@ -19,13 +31,23 @@ export async function getSessionId() {
     if (session === undefined) {
         return null;
     }
-    return decodeURI(session);
-}
-export async function changeSessionIdAfterLogin(newSessionId: string) {
-    const oldSessionId = await getSessionId();
-    if (oldSessionId) {
-        await changeCartId(oldSessionId, newSessionId);
+    try {
+        const jwt = await jwtVerify(session, jwtSecret);
+        return jwt.payload.sessionId as string;
+    } catch (error) {
+        if (error instanceof JWTExpired) {
+            return await changeSessionId();
+        }
+        return null
     }
+}
+
+export async function changeSessionIdAfterLogin(newSessionId: string) {
     setSessionId(newSessionId, true);
 }
 
+export async function changeSessionId() {
+    const session_id = await createSessionIdEdge()
+    setSessionId(session_id, false);
+    return session_id;
+}

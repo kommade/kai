@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSessionIdEdge } from "./functions/sessions-edge";
 import { ifLoggedInGetUser } from "./functions/auth";
+import { SignJWT } from "jose";
+
+const jwtSecret = new TextEncoder().encode(process.env.JWT_SECRET as string);
 
 // Rule 1: Check session
 async function checkSession(request: NextRequest) {
@@ -8,7 +11,14 @@ async function checkSession(request: NextRequest) {
     if (!session) {
         const created = await createSessionIdEdge();
         const response = NextResponse.next();
-        response.cookies.set({ name: "session-id", value: created, expires: process.env.NODE_ENV === "test" ? new Date(Date.now() + 10000) : new Date(Date.now() + 1000 * 60 * 60) });
+        const jwt = new SignJWT({ created }).setProtectedHeader({ alg: "HS256" }).setExpirationTime(process.env.NODE_ENV === "test" ? "10s" : "1h");
+        response.cookies.set({
+            name: "session-id",
+            value: await jwt.sign(jwtSecret),
+            httpOnly: process.env.NODE_ENV === "production",
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+        });
         return response;
     }
     return null;

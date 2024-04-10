@@ -2,17 +2,29 @@
 
 import { cookies } from "next/headers";
 import { deleteCart } from "./database";
-import { createSessionIdEdge } from "./sessions-edge";
+import { changeSessionId, createSessionIdEdge } from "./sessions-edge";
 import { setSessionId } from "./sessions-edge";
+import { jwtVerify } from "jose";
+import { JWTExpired } from "jose/errors";
 
 export type SessionId = string;
+const jwtSecret = new TextEncoder().encode(process.env.JWT_SECRET as string);
 
 export async function getSessionId() {
     const session = cookies().get("session-id")?.value;
     if (session === undefined) {
         return null;
     }
-    return decodeURI(session);
+    try {
+        const jwt = await jwtVerify(session, jwtSecret);
+        return jwt.payload.sessionId as string;
+    } catch (error) {
+        if (error instanceof JWTExpired) {
+            return await changeSessionId();
+        }
+        console.error(error);
+        return null
+    }
 }
 
 export async function getSessionIdOrNew() {
