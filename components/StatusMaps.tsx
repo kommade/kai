@@ -21,6 +21,14 @@ export const orderStatusMap = {
     "refunded": <span className="flex gap-2 w-full justify-between rounded-md p-1 px-2  bg-kai-red/30"><h3 className="h-[16.67px] text-kai-red ">Refunded</h3> <RotateCcw className="stroke-kai-red mx-1" width={16.67} height={16.67} /></span>
 };
 
+const orderStatusColorMap = {
+    "pending": "kai-yellow",
+    "shipped": "kai-blue",
+    "delivered": "kai-green",
+    "cancelled": "kai-red",
+    "refunded": "kai-red"
+}
+
 interface OrderStatusMapProps {
     status: keyof typeof orderStatusMap;
 }
@@ -178,16 +186,18 @@ export const OrderStatusesDisplay = ({ orders }: { orders: Kai.Order[] }) => {
     });
 
     return (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2">
             {
                 Object.entries(statusCount).map(([status, count]) => {
                     return (
-                        <div key={status} className={`flex flex-row gap-2 px-3 rounded-md bg-kai-gray/10 ${status === "refunded" ? "col-span-2 w-full justify-center": "w-fit"}`}>
+                        <div key={status} className={"flex flex-row gap-2 px-3 rounded-md bg-kai-gray/10 w-fit"}>
                             <div className="w-[110px]">
                                 {orderStatusMap[status as keyof typeof orderStatusMap]}
                             </div>
                             <div className="flex items-center ml-2">
-                                <h3 className="text-kai-gray">{count}</h3>
+                                <h3 className={`text-${orderStatusColorMap[status as keyof typeof orderStatusColorMap]}`}>
+                                    {count}
+                                </h3>
                             </div>
                         </div>
                     )

@@ -69,7 +69,7 @@ const OrderComponent = ({ data }: { data: Kai.ProductInCart[] }) => {
     
     return (
         <>
-            <DataTable columns={columns} data={data} emptyMessage="No items in data."/>
+            <DataTable columns={columns} data={data} emptyMessage="No items in data." paginationEnabled={false} />
         </>
     );
 }

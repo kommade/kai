@@ -140,7 +140,7 @@ const CartComponent = ({ data, loggedIn }: { data?: Kai.CartWithProducts | null,
     
     return (
         <>
-            <DataTable columns={columns} data={cart.items} emptyMessage="No items in cart."/>
+            <DataTable columns={columns} data={cart.items} emptyMessage="No items in cart." paginationEnabled={false} />
             <div className="flex flex-col items-end justify-between w-full gap-2 my-8">
                 <Button
                     disabled={cart.items.length === 0}

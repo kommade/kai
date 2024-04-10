@@ -29,6 +29,7 @@ export const userExists: (email: string) => Promise<Pick<Kai.User, "id" | "hash"
         select: {
             id: true,
             hash: true,
+            role: true,
         },
         cacheStrategy: {
             swr: process.env.NODE_ENV === 'production' ? 30 : 0,

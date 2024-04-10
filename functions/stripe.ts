@@ -103,9 +103,15 @@ export const getDisputes = async () => {
 export const getBalance = async () => {
     try {
         const b = await stripe.balance.retrieve()
-        return { available: b.available[0].amount / 100, pending: b.pending[0].amount / 100 }
+        const bt = await stripe.balanceTransactions.list()
+        return {
+            available: b.available[0].amount / 100,
+            pending: b.pending[0].amount / 100,
+            week: bt.data.filter((transaction) => transaction.net > 0 && transaction.created > Date.now() / 1000 - 604800).reduce((acc, curr) => acc + curr.amount, 0) / 100,
+            month: bt.data.filter((transaction) => transaction.net > 0 && transaction.created > Date.now() / 1000 - 2592000).reduce((acc, curr) => acc + curr.amount, 0) / 100,
+        }
     } catch (error) {
         console.error(error);
-        return { available: 0, pending: 0 };
+        return { available: 0, pending: 0, week: 0, month: 0 };
     }
 }

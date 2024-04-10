@@ -326,7 +326,7 @@ export const getCartDBId: CartOverload<string | undefined> = cache(async (cartId
     if (user) {
         cart = await prisma.carts.findUnique({
             where: {
-                user_id: cartId,
+                user_id: await getUserId(cartId),
             },
             select: {
                 id: true,

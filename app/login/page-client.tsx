@@ -54,6 +54,7 @@ const LoginPage = ({ session }: { session: string | null }) => {
             if (user.role === "admin") {
                 router.push("/dashboard");
             } else {
+                console.log(redirect)
                 router.push(redirect)
             }
         } else {
