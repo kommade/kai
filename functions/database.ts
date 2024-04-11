@@ -4,6 +4,8 @@ import { withAccelerate } from '@prisma/extension-accelerate';
 import Kai from "@/lib/types";
 import { unstable_cache as cache } from "next/cache";
 import { getSessionIdOrNew } from "./sessions";
+import { userExists } from "./database-edge";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient().$extends(withAccelerate());
 
@@ -627,3 +629,32 @@ export const setShippingDetails = async (order_id: number, details: { shipping_p
     }
 }
 
+export const checkNewUser = async (email: string) => {
+    if (await userExists(email)) {
+        return false;
+    }
+    return true;
+}
+
+export const createNewUser: (email: string, password: string, name: string, customer_id: string) => Promise<boolean> = async (email: string, password: string, name: string, customer_id: string) => {
+    if (await userExists(email)) {
+        return false;
+    }
+    const hash = await bcrypt.hash(password, 12);
+    try {
+        await prisma.users.create({
+            data: {
+                email,
+                name,
+                hash,
+                last: new Date(),
+                role: "user",
+                customer_id
+            },
+        });
+        return true;
+    } catch (error) {
+        console.error(error);
+        return false;
+    }
+}

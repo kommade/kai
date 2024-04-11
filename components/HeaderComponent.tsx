@@ -2,10 +2,9 @@
 import Link from "next/link"
 import React, { useEffect } from 'react'
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from "./ui/navigation-menu"
-import { CircleUserRound, LogIn, Router, ShoppingCart } from "lucide-react"
+import { CircleUserRound, ShoppingCart } from "lucide-react"
 import { ifLoggedInGetUser, logout } from "@/functions/auth";
 import Kai from "@/lib/types";
-import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
 
 const HeaderComponent = () => {
@@ -24,15 +23,17 @@ const HeaderComponent = () => {
     const profileMenuContent = (user: Kai.User | null) => {
         if (user?.role === "admin") {
             return (
-                <ul className="w-[148px] bg-kai-white text-kai-blue shadow mt-2 p-2 rounded-md">
-                    <li className="flex h-fit py-2 font-bold rounded-md pl-2">
-                        <h3>Hello {user.name}!</h3>
-                    </li>
+                <ul className="min-w-[148px] bg-kai-white text-kai-blue shadow p-2 rounded-md">
                     <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md">
                         <Link href={"/dashboard"} legacyBehavior passHref>
                             <NavigationMenuLink className="pl-2">
                                 <h3>Admin Dashboard</h3>
                             </NavigationMenuLink>
+                        </Link>
+                    </li>
+                    <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md">
+                        <Link href={`https://dashboard.stripe.com${process.env.NODE_ENV === "production" ? "" : "/test"}`} legacyBehavior passHref>
+                            <NavigationMenuLink target="_blank" rel="noopener noreferrer" className="pl-2"><h3>Stripe Dashboard</h3></NavigationMenuLink>
                         </Link>
                     </li>
                     <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md" >
@@ -46,34 +47,36 @@ const HeaderComponent = () => {
                         </Link>
                     </li>
                     <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md" >
-                        <NavigationMenuLink onClick={() => { logout(); router.refresh()}} className="pl-2"><h3>Sign Out</h3></NavigationMenuLink>
+                        <NavigationMenuLink onClick={() => { logout(); router.push("/")}} className="pl-2"><h3>Logout</h3></NavigationMenuLink>
                     </li>
                 </ul>
             )
         } else if (user?.role === "user") {
             return (
-                <ul className="w-[148px] bg-kai-white text-kai-blue shadow mt-2 p-2 rounded-md">
-                    <li className="flex h-fit py-2 font-bold rounded-md pl-2">
-                        <h3>Hello {user.name}!</h3>
-                    </li>
+                <ul className="min-w-[148px] bg-kai-white text-kai-blue shadow p-2 rounded-md">
                     <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md" >
-                        <Link href={"/profile"} legacyBehavior passHref>
-                            <NavigationMenuLink className="pl-2"><h3>View Profile</h3></NavigationMenuLink>
+                        <Link href={"/account"} legacyBehavior passHref>
+                            <NavigationMenuLink className="pl-2"><h3>View Account</h3></NavigationMenuLink>
                         </Link>
                     </li>
                     <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md" >
-                        <Link href={"/profile/orders"} legacyBehavior passHref>
+                        <Link href={"/account/orders"} legacyBehavior passHref>
                             <NavigationMenuLink className="pl-2"><h3>View My Orders</h3></NavigationMenuLink>
                         </Link>
                     </li>
+                    <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md">
+                        <Link href={"/cart"} legacyBehavior passHref>
+                            <NavigationMenuLink className="pl-2"><h3>My Cart</h3></NavigationMenuLink>
+                        </Link>
+                    </li>
                     <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md" >
-                        <NavigationMenuLink onClick={() => { logout(); router.refresh() }} className="pl-2"><h3>Logout</h3></NavigationMenuLink>
+                        <NavigationMenuLink onClick={() => { logout(); router.push("/") }} className="pl-2"><h3>Logout</h3></NavigationMenuLink>
                     </li>
                 </ul>
             )
         } else {
             return (
-                <ul className="w-[148px] bg-kai-white text-kai-blue shadow mt-2 p-2 rounded-md">
+                <ul className="min-w-[148px] bg-kai-white text-kai-blue shadow p-2 rounded-md">
                     <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md">
                         <Link href={"/login"} legacyBehavior passHref>
                             <NavigationMenuLink className="pl-2">
@@ -83,7 +86,12 @@ const HeaderComponent = () => {
                     </li>
                     <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md" >
                         <Link href={"/dashboard/orders"} legacyBehavior passHref>
-                            <NavigationMenuLink className="pl-2"><h3>Create account</h3></NavigationMenuLink>
+                            <NavigationMenuLink className="pl-2"><h3>Create Account</h3></NavigationMenuLink>
+                        </Link>
+                    </li>
+                    <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md">
+                        <Link href={"/cart"} legacyBehavior passHref>
+                            <NavigationMenuLink className="pl-2"><h3>My Cart</h3></NavigationMenuLink>
                         </Link>
                     </li>
                 </ul>
@@ -108,7 +116,7 @@ const HeaderComponent = () => {
                                     </Link>
                                 </NavigationMenuTrigger>
                                 <NavigationMenuContent className="bg-kai-white">
-                                    <ul className="w-[136px] bg-kai-white text-kai-blue shadow mt-2 p-2 rounded-md">
+                                    <ul className="w-[136px] bg-kai-white text-kai-blue shadow p-2 rounded-md">
                                         <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md">
                                             <Link href={"/products?type=earrings"} legacyBehavior passHref>
                                                 <NavigationMenuLink className="pl-2"><h3>Earrings</h3></NavigationMenuLink>
@@ -138,27 +146,10 @@ const HeaderComponent = () => {
                         <NavigationMenuList className="flex">
                             <NavigationMenuItem>
                                 <NavigationMenuTrigger className="bg-kai-white active:bg-kai-grey hover:bg-kai-grey data-[state=open]:bg-accent/0 focus:bg-accent-0">
-                                    <ShoppingCart className="stroke-kai-blue" />
-                                </NavigationMenuTrigger>
-                                <NavigationMenuContent className="bg-kai-white">
-                                    <ul className="w-[148px] bg-kai-white text-kai-blue shadow mt-2 p-2 rounded-md">
-                                        <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md">
-                                            <Link href={"/cart"} legacyBehavior passHref>
-                                                <NavigationMenuLink className="pl-2"><h3>My Cart</h3></NavigationMenuLink>
-                                            </Link>
-                                        </li>
-                                        <li className="flex h-fit py-2 hover:bg-kai-grey rounded-md" >
-                                            <Link href={"/checkout"} legacyBehavior passHref>
-                                                <NavigationMenuLink className="pl-2"><h3>Checkout</h3></NavigationMenuLink>
-                                            </Link>
-                                        </li>
-                                    </ul>
-                                    
-                                </NavigationMenuContent>
-                            </NavigationMenuItem>
-                            <NavigationMenuItem>
-                                <NavigationMenuTrigger className="bg-kai-white active:bg-kai-grey hover:bg-kai-grey data-[state=open]:bg-accent/0 focus:bg-accent-0">
-                                    <CircleUserRound className="stroke-kai-blue" />
+                                    <div className="min-w-[100px] flex items-center justify-evenly">
+                                        <CircleUserRound className="stroke-kai-blue" />
+                                        <h3 className="mx-2">{user?.name ?? "Account"}</h3>
+                                    </div>
                                 </NavigationMenuTrigger>
                                 <NavigationMenuContent className="bg-kai-white">
                                     {profileMenuContent(user)}

@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
-  url      = env("DATABASE_URL")
+  provider  = "mongodb"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_DATABASE_URL")
 }
 
@@ -25,7 +25,7 @@ model orders {
   user_id           String?       @db.ObjectId
   invoice_id        String
   items             OrdersItems[]
-  order_id          Int @unique
+  order_id          Int           @unique
   order_status      String
   payment_id        String
   payment_status    String
@@ -44,9 +44,9 @@ type OrdersAddress {
 }
 
 type OrdersItems {
-  count           Int
-  selection_id    String
-  total           Float
+  count        Int
+  selection_id String
+  total        Float
 }
 
 model productOptions {
@@ -68,7 +68,7 @@ model products {
   options       productOptions[] @relation(fields: [option_ids], references: [id])
   price         Float
   stripe_id     String
-  url           String @unique
+  url           String           @unique
   type          String
 
   @@index([name, desc, type], name: "product_index")
@@ -76,19 +76,20 @@ model products {
 }
 
 model users {
-  id       String   @id @default(auto()) @map("_id") @db.ObjectId
-  email    String   @unique
-  hash     String
-  last     DateTime
-  role     String
-  verified Boolean  @default(false)
-  name     String
-  orders   orders[]
-  cart     carts?
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  email       String   @unique
+  hash        String
+  last        DateTime
+  role        String
+  verified    Boolean  @default(false)
+  name        String
+  orders      orders[]
+  cart        carts?
+  customer_id String?
 }
 
 type customer {
-  email String 
+  email String
   name  String
 }
 
@@ -107,7 +108,7 @@ model carts {
 }
 
 type CartItems {
-  selection_id    String
-  count           Int
-  total           Float
+  selection_id String
+  count        Int
+  total        Float
 }

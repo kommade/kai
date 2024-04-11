@@ -139,7 +139,7 @@ const OrdersComponent = ({ data }: { data?: Kai.Order[] }) => {
                                         toast({ description: "Copied to clipboard!", duration: 1000, variant: "success" })
                                     }}
                                 >
-                                Copy order ID
+                                    Copy order ID
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>

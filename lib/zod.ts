@@ -149,3 +149,23 @@ export const zodValidateCartWithProducts = cartSchema.extend({
 }, {
     message: "Either user_id or session_id must be provided but not both",
 });
+
+export const signupFormSchemaPersonal = z.object({
+    first_name: z.string().min(2),
+    last_name: z.string().min(2).optional(),
+});
+
+export const signupFormSchemaCredentials = z.object({
+    email: z.string().email(),
+    password: z.string()
+        .min(8)
+        .refine(password => /[A-Z]/.test(password), {
+        message: "Password must contain at least one uppercase letter",
+        })
+        .refine(password => /[a-z]/.test(password), {
+        message: "Password must contain at least one lowercase letter",
+        })
+        .refine(password => /[0-9]/.test(password), {
+        message: "Password must contain at least one digit",
+        })
+});

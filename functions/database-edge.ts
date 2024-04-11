@@ -32,7 +32,7 @@ export const userExists: (email: string) => Promise<Pick<Kai.User, "id" | "hash"
             role: true,
         },
         cacheStrategy: {
-            swr: process.env.NODE_ENV === 'production' ? 30 : 0,
+            swr: process.env.NODE_ENV === 'production' ? 10 : 0,
         }
     });
 }

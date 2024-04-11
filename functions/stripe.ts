@@ -115,3 +115,30 @@ export const getBalance = async () => {
         return { available: 0, pending: 0, week: 0, month: 0 };
     }
 }
+
+export const createCustomerIntital = async (name: string, email: string) => {
+    try {
+        const customer = await stripe.customers.create({
+            name,
+            email,
+        });
+        return customer.id;
+    } catch (error) {
+        console.error(error);
+        return null;
+    }
+}
+
+export const createPortalSession = async (customerId: string) => {
+    try {
+        const session = await stripe.billingPortal.sessions.create({
+            customer: customerId,
+            return_url: `${process.env.NEXT_PUBLIC_URL}/account`,
+        });
+        return session.url;
+    } catch (error) {
+        console.error(error);
+        return null;
+    }
+}
+

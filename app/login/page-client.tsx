@@ -106,7 +106,7 @@ const LoginPage = ({ session }: { session: string | null }) => {
                             </Form>
                             <div className="flex gap-4 w-[300px] justify-between">
                                 <Button variant="link" className="mt-4">Forgot Password</Button>
-                                <Button variant="link" className="mt-4">Create Account</Button>
+                                <Button variant="link" className="mt-4" onClick={() => router.push("/signup")}>Create Account</Button>
                             </div>
                         </div>
                     </div>
